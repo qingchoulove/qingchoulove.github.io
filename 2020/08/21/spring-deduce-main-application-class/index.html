@@ -1,0 +1,162 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="google-site-verification" content="" />
+  
+  <title>Java中寻找main函数对应类</title>
+  <meta name="author" content="Kung">
+  <meta name="description" content="Spring 中的 deduceMainApplicationClass在重读SpringBoot启动过程中发现一个之前忽略的方法 deduceMainApplicationClass
+123456789101112131415// org.springframework.boot.SpringAp">
+  
+  
+  <meta property="og:title" content="Java中寻找main函数对应类"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:site_name" content="Kung&#39;s"/>
+  <link href="/apple-touch-icon-precomposed.png" sizes="180x180" rel="apple-touch-icon-precomposed">
+  <link rel="alternate" href="/atom.xml" title="Kung&#39;s" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/m.min.css">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+<body>
+  <a id="top"></a>
+  <div id="main">
+    <div class="main-ctnr">
+      <div class="behind">
+  <a href="/" class="back black-color">
+    <svg class="i-close" viewBox="0 0 32 32" width="22" height="22" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+        <path d="M2 30 L30 2 M30 30 L2 2"></path>
+    </svg>
+  </a>
+  <div class="description">
+    &nbsp;银鞍照白马, 飒沓如流星
+  </div>
+</div>
+
+
+  <article class="standard post">
+    <div class="title">
+      
+  
+    <h1 class="page-title center">
+        Java中寻找main函数对应类
+    </h1>
+  
+
+
+    </div>
+    <div class="meta center">
+      <time datetime="2020-08-21T03:13:03.221Z" itemprop="datePublished">
+  <svg class="i-calendar" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+    <path d="M2 6 L2 30 30 30 30 6 Z M2 15 L30 15 M7 3 L7 9 M13 3 L13 9 M19 3 L19 9 M25 3 L25 9"></path>
+  </svg>
+  &nbsp;
+  2020-08-21
+</time>
+
+
+
+
+
+    
+    &nbsp;
+    <svg class="i-tag" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+      <circle cx="24" cy="8" r="2"></circle>
+      <path d="M2 18 L18 2 30 2 30 14 14 30 Z"></path>
+    </svg>
+    &nbsp;
+    <a href="/tags/Java/">Java</a>·<a href="/tags/Spring/">Spring</a>
+
+
+    </div>
+    <hr>
+    
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Spring-%E4%B8%AD%E7%9A%84-deduceMainApplicationClass"><span class="toc-text">Spring 中的 deduceMainApplicationClass</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Stacktrace"><span class="toc-text">Stacktrace</span></a></li></ol>
+    
+    <div class="picture-container">
+      
+    </div>
+    <h2 id="Spring-中的-deduceMainApplicationClass"><a href="#Spring-中的-deduceMainApplicationClass" class="headerlink" title="Spring 中的 deduceMainApplicationClass"></a>Spring 中的 deduceMainApplicationClass</h2><p>在重读SpringBoot启动过程中发现一个之前忽略的方法 <code>deduceMainApplicationClass</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// org.springframework.boot.SpringApplication#deduceMainApplicationClass</span></span><br><span class="line"><span class="keyword">private</span> Class&lt;?&gt; deduceMainApplicationClass() &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        StackTraceElement[] stackTrace = <span class="keyword">new</span> RuntimeException().getStackTrace();</span><br><span class="line">        <span class="keyword">for</span> (StackTraceElement stackTraceElement : stackTrace) &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="string">&quot;main&quot;</span>.equals(stackTraceElement.getMethodName())) &#123;</span><br><span class="line">                <span class="keyword">return</span> Class.forName(stackTraceElement.getClassName());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">catch</span> (ClassNotFoundException ex) &#123;</span><br><span class="line">        <span class="comment">// Swallow and continue</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>流程非常简单, 创建一个运行时异常, 然后获取堆栈数组并遍历找到 <code>main</code> 方法, 之前的开发工作中经常会用到 <code>Stacktrace</code> 来跟踪异常信息, 但像Spring这么使用还是非常有创意.</p>
+<h2 id="Stacktrace"><a href="#Stacktrace" class="headerlink" title="Stacktrace"></a>Stacktrace</h2><p>这个用法吸引了我再去了解一下 <code>Java</code> 中异常的 <code>Stacktrace</code> 是如何设置的, 因为之前确实没有想到过这个事情. </p>
+<p>我们都知道 <code>RuntimeException</code> 最终继承自 <code>Throwable</code> , 而 <code>Throwable</code> 的几个构造函数都有一个方法 <code>fillInStackTrace</code> , 并最终调用一个本地方法.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// java.lang.Throwable#fillInStackTrace()</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> Throwable <span class="title">fillInStackTrace</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (stackTrace != <span class="keyword">null</span> ||</span><br><span class="line">        backtrace != <span class="keyword">null</span> <span class="comment">/* Out of protocol state */</span> ) &#123;</span><br><span class="line">        fillInStackTrace(<span class="number">0</span>);</span><br><span class="line">        stackTrace = UNASSIGNED_STACK;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">native</span> Throwable <span class="title">fillInStackTrace</span><span class="params">(<span class="keyword">int</span> dummy)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>这个本地方法在之前阅读 《自己动手写Java虚拟机》时正好是其中实现的一个本地方法之一, 大致过程就是从虚拟栈中遍历栈帧并构造 <code>StackTraceElement</code> 返回.</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// private native Throwable fillInStackTrace(int dummy);</span></span><br><span class="line"><span class="comment">// (I)Ljava/lang/Throwable;</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">fillInStackTrace</span><span class="params">(frame *rtda.Frame)</span></span> &#123;</span><br><span class="line">    this := frame.LocalVars().GetThis()</span><br><span class="line">    frame.OperandStack().PushRef(this)</span><br><span class="line"></span><br><span class="line">    stes := createStackTraceElements(this, frame.Thread())</span><br><span class="line">    this.SetExtra(stes)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">createStackTraceElements</span><span class="params">(tObj *heap.Object, thread *rtda.Thread)</span> []*<span class="title">StackTraceElement</span></span> &#123;</span><br><span class="line">    skip := distanceToObject(tObj.Class()) + <span class="number">2</span></span><br><span class="line">    frames := thread.GetFrames()[skip:]</span><br><span class="line">    stes := <span class="built_in">make</span>([]*StackTraceElement, <span class="built_in">len</span>(frames))</span><br><span class="line">    <span class="keyword">for</span> i, frame := <span class="keyword">range</span> frames &#123;</span><br><span class="line">        stes[i] = createStackTraceElement(frame)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> stes</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>不想去翻jvm源码, 偷懒贴了 jvmgo 的实现, 毕竟以学习原理为主</p>
+
+
+  </article>
+  </script>
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+  </script>
+  <div class="busuanzi center">
+    page PV:&nbsp;<span id="busuanzi_value_page_pv"></span>&nbsp;・&nbsp;
+    site PV:&nbsp;<span id="busuanzi_value_site_pv"></span>&nbsp;・&nbsp;
+    site UV:&nbsp;<span id="busuanzi_value_site_uv"></span>
+  </div>
+
+
+    
+
+
+
+
+
+    </div>
+  </div>
+  <footer class="page-footer"><div class="clearfix"></div>
+<div class="right-foot">
+    <div class="firstrow">
+        <a href="#top" target="_self">
+            <svg class="i-caret-right" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor"
+                stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+                <path d="M10 30 L26 16 10 2 Z"></path>
+            </svg>
+        </a>
+        © Kung's 2018-2020
+    </div>
+    <div class="secondrow">
+        <a target="_blank" rel="noopener" href="https://github.com/gaoryrt/hexo-theme-pln">
+            Theme Pln
+        </a>
+    </div>
+</div>
+<div class="clearfix"></div>
+<div class="sponsor">
+    本网站由
+    <img class="logo" src="/img/upyun.png" />
+    提供云存储服务
+</div>
+</footer>
+  <script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+<script src="/js/search.min.js"></script>
+
+
+<script type="text/javascript">
+
+// disqus scripts
+
+
+// dropdown scripts
+$(".dropdown").click(function(event) {
+  var current = $(this);
+  event.stopPropagation();
+  $(current).children(".dropdown-content")[($(current).children(".dropdown-content").hasClass("open"))?'removeClass':'addClass']("open")
+});
+$(document).click(function(){
+    $(".dropdown-content").removeClass("open");
+})
+
+var path = "/search.xml";
+searchFunc(path, 'local-search-input', 'local-search-result');
+
+</script>
+
+</body>
+</html>

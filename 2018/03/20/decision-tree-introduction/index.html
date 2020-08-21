@@ -1,0 +1,613 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="google-site-verification" content="" />
+  
+  <title>西瓜挑选指南</title>
+  <meta name="author" content="Kung">
+  <meta name="description" content="名词解释要进行机器学习，先要有数据，假设我们收集了一批关于西瓜的数据，例如（色泽 =青绿；根蒂=稍蜷；敲声=沉闷），（色泽=浅白；根蒂=硬挺；敲声=清脆）……这组数据的集合称为数据集，每条记录都是关于一个对象的描述，称为一个“示例”或“样本”。反应对象在某个方面的性质的事项，例如色泽、根蒂、敲声，称">
+  
+  
+  <meta property="og:title" content="西瓜挑选指南"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:site_name" content="Kung&#39;s"/>
+  <link href="/apple-touch-icon-precomposed.png" sizes="180x180" rel="apple-touch-icon-precomposed">
+  <link rel="alternate" href="/atom.xml" title="Kung&#39;s" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/m.min.css">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+<body>
+  <a id="top"></a>
+  <div id="main">
+    <div class="main-ctnr">
+      <div class="behind">
+  <a href="/" class="back black-color">
+    <svg class="i-close" viewBox="0 0 32 32" width="22" height="22" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+        <path d="M2 30 L30 2 M30 30 L2 2"></path>
+    </svg>
+  </a>
+  <div class="description">
+    &nbsp;银鞍照白马, 飒沓如流星
+  </div>
+</div>
+
+
+  <article class="standard post">
+    <div class="title">
+      
+  
+    <h1 class="page-title center">
+        西瓜挑选指南
+    </h1>
+  
+
+
+    </div>
+    <div class="meta center">
+      <time datetime="2018-03-20T19:00:00.000Z" itemprop="datePublished">
+  <svg class="i-calendar" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+    <path d="M2 6 L2 30 30 30 30 6 Z M2 15 L30 15 M7 3 L7 9 M13 3 L13 9 M19 3 L19 9 M25 3 L25 9"></path>
+  </svg>
+  &nbsp;
+  2018-03-20
+</time>
+
+
+
+
+
+    
+    &nbsp;
+    <svg class="i-tag" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+      <circle cx="24" cy="8" r="2"></circle>
+      <path d="M2 18 L18 2 30 2 30 14 14 30 Z"></path>
+    </svg>
+    &nbsp;
+    <a href="/tags/机器学习/">机器学习</a>
+
+
+    </div>
+    <hr>
+    
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%8D%E8%AF%8D%E8%A7%A3%E9%87%8A"><span class="toc-text">名词解释</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%B5%81%E7%A8%8B"><span class="toc-text">基本流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%92%E5%88%86%E9%80%89%E6%8B%A9"><span class="toc-text">划分选择</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%A1%E6%81%AF%E5%A2%9E%E7%9B%8A"><span class="toc-text">信息增益</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A2%9E%E7%9B%8A%E7%8E%87"><span class="toc-text">增益率</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E5%B0%BC%E6%8C%87%E6%95%B0"><span class="toc-text">基尼指数</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%AA%E6%9E%9D%E5%A4%84%E7%90%86"><span class="toc-text">剪枝处理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A2%84%E5%89%AA%E6%9E%9D"><span class="toc-text">预剪枝</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%8E%E5%89%AA%E6%9E%9D"><span class="toc-text">后剪枝</span></a></li></ol></li></ol>
+    
+    <div class="picture-container">
+      
+    </div>
+    <h2 id="名词解释"><a href="#名词解释" class="headerlink" title="名词解释"></a>名词解释</h2><p>要进行机器学习，先要有数据，假设我们收集了一批关于西瓜的数据，例如（色泽 =青绿；根蒂=稍蜷；敲声=沉闷），（色泽=浅白；根蒂=硬挺；敲声=清脆）……这组数据的集合称为数据集，每条记录都是关于一个对象的描述，称为一个“示例”或“样本”。反应对象在某个方面的性质的事项，例如色泽、根蒂、敲声，称为“属性”或“特征”。<br>    从数据中学的模型的过程称为“学习”或“训练”。训练过程中使用的数据称为“训练数据”，其中每个样本称为一个“训练样本”，训练样本组成的集合就是“训练集”。学得模型后，使用其进行预测的过程称为“测试”，被预测样本称为“测试样本”。<br>    学习任务大致可分为两类：“监督学习”和“无监督学习”，今天要讲的“决策树”就属于监督学习的一种。</p>
+<hr>
+<h2 id="基本流程"><a href="#基本流程" class="headerlink" title="基本流程"></a>基本流程</h2><p><img src="https://static.illidan.cn/img/20200808225948.png" alt="Alt text"><br>基本算法:<br>输入：训练集 <script type="math/tex">D=\{(x_1,y_1),(x_2,y_2)......(x_m,y_m)\}</script> </p>
+<p>属性集 <script type="math/tex">A=\{a_1,a_2,......,a_d\}</script></p>
+<p>过程：函数<code>TreeGenerate(D,A)</code></p>
+<p>1:生成节点node;</p>
+<p>2:if $D$ 中样本完全属于同一类别 $C$ then</p>
+<p>3: 　将node标记为C类叶节点;return</p>
+<p>4:end if</p>
+<p>5:if $A=\emptyset$ OR D中样本在A上取值相同 then</p>
+<p>6: 　将node标记为叶节点;return</p>
+<p>7:end if</p>
+<p>8:从A中选择最优划分属性 $a_*$;</p>
+<p>9:for <script type="math/tex">a_*</script> 的每一个值 <script type="math/tex">a_*^{v}</script>  do</p>
+<p>10:　为node生成一个分支;令 <script type="math/tex">D_v</script> 表示D在 <script type="math/tex">a_*</script> 中取值为 <script type="math/tex">a_*^v</script> 的样本子集; </p>
+<p>11:　if $D_v$ 为空 then </p>
+<p>12:　　将分支节点标记为叶节点;return </p>
+<p>13:　else </p>
+<p>14:　　以 <script type="math/tex">TreeGenerate(D_v, A \backslash \{a_*\})</script></p>
+<p>15:　end if </p>
+<p>16:end for </p>
+<p>输出：以node为根节点的一颗决策树</p>
+<h2 id="划分选择"><a href="#划分选择" class="headerlink" title="划分选择"></a>划分选择</h2><p>决策树学习的关键是如何选择最优划分属性，一般而言，随着划分的不断进行，我们希望决策树的分支节点所包含的样本尽可能属于同一类别，即节点纯度越来越高。</p>
+<h3 id="信息增益"><a href="#信息增益" class="headerlink" title="信息增益"></a>信息增益</h3><p>信息熵</p>
+<script type="math/tex; mode=display">Ent(D) = - \sum_{k=1}^{|y|}p_klog_2p_k</script><p>Ent(D)的值越小，则D的纯度越高。<br>信息增益</p>
+<script type="math/tex; mode=display">Gain(D, a) = Ent(D)-\sum_{v=1}^V\frac{|D^v|}{|D|}Ent(D^v)</script><p>信息增益越大，则使用属性a进行划分获得的纯度提升越大，因此我们可用信息增益来进行决策树的划分属性选择。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:center">编号</th>
+<th style="text-align:center">色泽</th>
+<th style="text-align:center">根蒂</th>
+<th style="text-align:center">敲声</th>
+<th style="text-align:center">纹理</th>
+<th style="text-align:center">脐部</th>
+<th style="text-align:center">触感</th>
+<th style="text-align:center">好瓜</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">1</td>
+<td style="text-align:center">青绿</td>
+<td style="text-align:center">蜷缩</td>
+<td style="text-align:center">浊响</td>
+<td style="text-align:center">清晰</td>
+<td style="text-align:center">凹陷</td>
+<td style="text-align:center">硬滑</td>
+<td style="text-align:center">是</td>
+</tr>
+<tr>
+<td style="text-align:center">2</td>
+<td style="text-align:center">乌黑</td>
+<td style="text-align:center">蜷缩</td>
+<td style="text-align:center">沉闷</td>
+<td style="text-align:center">清晰</td>
+<td style="text-align:center">凹陷</td>
+<td style="text-align:center">硬滑</td>
+<td style="text-align:center">是</td>
+</tr>
+<tr>
+<td style="text-align:center">3</td>
+<td style="text-align:center">乌黑</td>
+<td style="text-align:center">蜷缩</td>
+<td style="text-align:center">浊响</td>
+<td style="text-align:center">清晰</td>
+<td style="text-align:center">凹陷</td>
+<td style="text-align:center">硬滑</td>
+<td style="text-align:center">是</td>
+</tr>
+<tr>
+<td style="text-align:center">4</td>
+<td style="text-align:center">青绿</td>
+<td style="text-align:center">蜷缩</td>
+<td style="text-align:center">沉闷</td>
+<td style="text-align:center">清晰</td>
+<td style="text-align:center">凹陷</td>
+<td style="text-align:center">硬滑</td>
+<td style="text-align:center">是</td>
+</tr>
+<tr>
+<td style="text-align:center">5</td>
+<td style="text-align:center">浅白</td>
+<td style="text-align:center">蜷缩</td>
+<td style="text-align:center">浊响</td>
+<td style="text-align:center">清晰</td>
+<td style="text-align:center">凹陷</td>
+<td style="text-align:center">硬滑</td>
+<td style="text-align:center">是</td>
+</tr>
+<tr>
+<td style="text-align:center">6</td>
+<td style="text-align:center">青绿</td>
+<td style="text-align:center">稍蜷</td>
+<td style="text-align:center">浊响</td>
+<td style="text-align:center">清晰</td>
+<td style="text-align:center">稍凹</td>
+<td style="text-align:center">软粘</td>
+<td style="text-align:center">是</td>
+</tr>
+<tr>
+<td style="text-align:center">7</td>
+<td style="text-align:center">乌黑</td>
+<td style="text-align:center">稍蜷</td>
+<td style="text-align:center">浊响</td>
+<td style="text-align:center">稍糊</td>
+<td style="text-align:center">稍凹</td>
+<td style="text-align:center">软粘</td>
+<td style="text-align:center">是</td>
+</tr>
+<tr>
+<td style="text-align:center">8</td>
+<td style="text-align:center">乌黑</td>
+<td style="text-align:center">稍蜷</td>
+<td style="text-align:center">浊响</td>
+<td style="text-align:center">清晰</td>
+<td style="text-align:center">稍凹</td>
+<td style="text-align:center">硬滑</td>
+<td style="text-align:center">是</td>
+</tr>
+<tr>
+<td style="text-align:center">9</td>
+<td style="text-align:center">乌黑</td>
+<td style="text-align:center">稍蜷</td>
+<td style="text-align:center">沉闷</td>
+<td style="text-align:center">稍糊</td>
+<td style="text-align:center">稍凹</td>
+<td style="text-align:center">硬滑</td>
+<td style="text-align:center">否</td>
+</tr>
+<tr>
+<td style="text-align:center">10</td>
+<td style="text-align:center">青绿</td>
+<td style="text-align:center">硬挺</td>
+<td style="text-align:center">清脆</td>
+<td style="text-align:center">清晰</td>
+<td style="text-align:center">平坦</td>
+<td style="text-align:center">软粘</td>
+<td style="text-align:center">否</td>
+</tr>
+<tr>
+<td style="text-align:center">11</td>
+<td style="text-align:center">浅白</td>
+<td style="text-align:center">硬挺</td>
+<td style="text-align:center">清脆</td>
+<td style="text-align:center">模糊</td>
+<td style="text-align:center">平坦</td>
+<td style="text-align:center">硬滑</td>
+<td style="text-align:center">否</td>
+</tr>
+<tr>
+<td style="text-align:center">12</td>
+<td style="text-align:center">浅白</td>
+<td style="text-align:center">蜷缩</td>
+<td style="text-align:center">浊响</td>
+<td style="text-align:center">模糊</td>
+<td style="text-align:center">平坦</td>
+<td style="text-align:center">软粘</td>
+<td style="text-align:center">否</td>
+</tr>
+<tr>
+<td style="text-align:center">13</td>
+<td style="text-align:center">青绿</td>
+<td style="text-align:center">稍蜷</td>
+<td style="text-align:center">浊响</td>
+<td style="text-align:center">稍糊</td>
+<td style="text-align:center">凹陷</td>
+<td style="text-align:center">硬滑</td>
+<td style="text-align:center">否</td>
+</tr>
+<tr>
+<td style="text-align:center">14</td>
+<td style="text-align:center">浅白</td>
+<td style="text-align:center">稍蜷</td>
+<td style="text-align:center">沉闷</td>
+<td style="text-align:center">稍糊</td>
+<td style="text-align:center">凹陷</td>
+<td style="text-align:center">硬滑</td>
+<td style="text-align:center">否</td>
+</tr>
+<tr>
+<td style="text-align:center">15</td>
+<td style="text-align:center">乌黑</td>
+<td style="text-align:center">稍蜷</td>
+<td style="text-align:center">浊响</td>
+<td style="text-align:center">清晰</td>
+<td style="text-align:center">稍凹</td>
+<td style="text-align:center">软粘</td>
+<td style="text-align:center">否</td>
+</tr>
+<tr>
+<td style="text-align:center">16</td>
+<td style="text-align:center">浅白</td>
+<td style="text-align:center">蜷缩</td>
+<td style="text-align:center">浊响</td>
+<td style="text-align:center">模糊</td>
+<td style="text-align:center">平坦</td>
+<td style="text-align:center">硬滑</td>
+<td style="text-align:center">否</td>
+</tr>
+<tr>
+<td style="text-align:center">17</td>
+<td style="text-align:center">青绿</td>
+<td style="text-align:center">蜷缩</td>
+<td style="text-align:center">沉闷</td>
+<td style="text-align:center">稍糊</td>
+<td style="text-align:center">稍凹</td>
+<td style="text-align:center">硬滑</td>
+<td style="text-align:center">否</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>以色泽为例计算其信息增益，色泽有3个可能的取值：{青绿，乌黑，浅白}，使用该属性对D进行划分，则有3个子集，分别是$D^1$(色泽=青绿)，$D^2$(色泽=乌黑)，$D^3$(色泽=浅白)<br>分别计算其信息熵：</p>
+<script type="math/tex; mode=display">Ent(D^1)=-(\frac{3}{6}log_2\frac{3}{6}+\frac{3}{6}log_2\frac{3}{6}) = 1.000</script><script type="math/tex; mode=display">Ent(D^2)=-(\frac{4}{6}log_2\frac{4}{6}+\frac{2}{6}log_2\frac{2}{6}) = 0.918</script><script type="math/tex; mode=display">Ent(D^3)=-(\frac{1}{5}log_2\frac{1}{5}+\frac{4}{5}log_2\frac{4}{5}) = 0.722</script><p>再计算其信息增益：</p>
+<script type="math/tex; mode=display">Gain(D, 色泽) = Ent(D) - \sum_{v=1}^3\frac{|D^v|}{|D|}Ent(D^v)=0.109</script><p>类似的可以计算其他属性的信息增益<br>$Gain(D,根蒂)=0.143$ $Gain(D, 敲声)=0.141$<br>$Gain(D, 纹理)=0.381$ $Gain(D, 脐部)=0.289$<br>$Gain(D, 触感)=0.006$<br>显然，属性纹理的信息增益最大，于是它被选为划分属性。<br><img src="https://static.illidan.cn/img/20200808230015.png" alt="Alt text"><br>然后决策树学习算法对每个分支节点做进一步划分，如第一个分支节点（纹理=清晰）为例，基于$D^1$计算各属性信息增益<br>$Gain(D^1,根蒂)=0.458$ $Gain(D^1, 敲声)=0.331$<br>$Gain(D^1, 色泽)=0.043$ $Gain(D^1, 脐部)=0.458$<br>$Gain(D^1 触感)=0.458$<br>根蒂、脐部、触感三个属性均取得最大值可任选其一进行划分。<br>最终得到决策树为：<br><img src="https://static.illidan.cn/img/20200808230058.png" alt="Alt text"></p>
+<h3 id="增益率"><a href="#增益率" class="headerlink" title="增益率"></a>增益率</h3><p>信息增益准则对可取数目较多的属性有所偏好，为减少这种偏好带来的影响，可以使用<strong>增益率</strong>来选择最优划分属性</p>
+<script type="math/tex; mode=display">Gain\_ratio(D,a) = \frac{Gain(D,a)}{IV(a)}</script><script type="math/tex; mode=display">IV(a)=-\sum_{v=1}^{V}\frac{|D_v|}{|D|}log_2\frac{|D_v|}{|D|}</script><h3 id="基尼指数"><a href="#基尼指数" class="headerlink" title="基尼指数"></a>基尼指数</h3><p>另一种最优划分属性的方法</p>
+<script type="math/tex; mode=display">Gini(D)=\sum_{k=1}^{|y|}\sum_{k^{'}\neq k}p_kp_{k^{'}}</script><p>Gini(D)反映了从数据集随机抽取两个样本，其类别标记不一致的概率因此Gini(D)越小，则数据集纯度越高</p>
+<script type="math/tex; mode=display">Gini\_index(D,a) = \sum_{v=1}^{V}\frac{|D^v|}{|D|}Gini(D^v)</script><p>在候选属性集合A中选择使划分后基尼指数最小的属性作为最优划分属性。</p>
+<h2 id="剪枝处理"><a href="#剪枝处理" class="headerlink" title="剪枝处理"></a>剪枝处理</h2><p>剪枝是决策树学习算法对付<strong>过拟合</strong>的主要手段。剪枝的基本策略有预剪枝和后剪枝。<br>训练集</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>色泽</th>
+<th>根蒂</th>
+<th>敲声</th>
+<th>纹理</th>
+<th>脐部</th>
+<th>触感</th>
+<th>好瓜</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>青绿</td>
+<td>蜷缩</td>
+<td>浊响</td>
+<td>清晰</td>
+<td>凹陷</td>
+<td>硬滑</td>
+<td>是</td>
+</tr>
+<tr>
+<td>2</td>
+<td>乌黑</td>
+<td>蜷缩</td>
+<td>沉闷</td>
+<td>清晰</td>
+<td>凹陷</td>
+<td>硬滑</td>
+<td>是</td>
+</tr>
+<tr>
+<td>3</td>
+<td>乌黑</td>
+<td>蜷缩</td>
+<td>浊响</td>
+<td>清晰</td>
+<td>凹陷</td>
+<td>硬滑</td>
+<td>是</td>
+</tr>
+<tr>
+<td>6</td>
+<td>青绿</td>
+<td>稍蜷</td>
+<td>浊响</td>
+<td>清晰</td>
+<td>稍凹</td>
+<td>软粘</td>
+<td>是</td>
+</tr>
+<tr>
+<td>7</td>
+<td>乌黑</td>
+<td>稍蜷</td>
+<td>浊响</td>
+<td>稍糊</td>
+<td>稍凹</td>
+<td>软粘</td>
+<td>是</td>
+</tr>
+<tr>
+<td>10</td>
+<td>青绿</td>
+<td>硬挺</td>
+<td>清脆</td>
+<td>清晰</td>
+<td>平坦</td>
+<td>软粘</td>
+<td>否</td>
+</tr>
+<tr>
+<td>14</td>
+<td>浅白</td>
+<td>稍蜷</td>
+<td>沉闷</td>
+<td>稍糊</td>
+<td>凹陷</td>
+<td>硬滑</td>
+<td>否</td>
+</tr>
+<tr>
+<td>15</td>
+<td>乌黑</td>
+<td>稍蜷</td>
+<td>浊响</td>
+<td>清晰</td>
+<td>稍凹</td>
+<td>软粘</td>
+<td>否</td>
+</tr>
+<tr>
+<td>16</td>
+<td>浅白</td>
+<td>蜷缩</td>
+<td>浊响</td>
+<td>模糊</td>
+<td>平坦</td>
+<td>硬滑</td>
+<td>否</td>
+</tr>
+<tr>
+<td>17</td>
+<td>青绿</td>
+<td>蜷缩</td>
+<td>沉闷</td>
+<td>稍糊</td>
+<td>稍凹</td>
+<td>硬滑</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>测试集</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>色泽</th>
+<th>根蒂</th>
+<th>敲声</th>
+<th>纹理</th>
+<th>脐部</th>
+<th>触感</th>
+<th>好瓜</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4</td>
+<td>青绿</td>
+<td>蜷缩</td>
+<td>沉闷</td>
+<td>清晰</td>
+<td>凹陷</td>
+<td>硬滑</td>
+<td>是</td>
+</tr>
+<tr>
+<td>5</td>
+<td>浅白</td>
+<td>蜷缩</td>
+<td>浊响</td>
+<td>清晰</td>
+<td>凹陷</td>
+<td>硬滑</td>
+<td>是</td>
+</tr>
+<tr>
+<td>8</td>
+<td>乌黑</td>
+<td>稍蜷</td>
+<td>浊响</td>
+<td>清晰</td>
+<td>稍凹</td>
+<td>硬滑</td>
+<td>是</td>
+</tr>
+<tr>
+<td>9</td>
+<td>乌黑</td>
+<td>稍蜷</td>
+<td>沉闷</td>
+<td>稍糊</td>
+<td>稍凹</td>
+<td>硬滑</td>
+<td>否</td>
+</tr>
+<tr>
+<td>11</td>
+<td>浅白</td>
+<td>硬挺</td>
+<td>清脆</td>
+<td>模糊</td>
+<td>平坦</td>
+<td>硬滑</td>
+<td>否</td>
+</tr>
+<tr>
+<td>12</td>
+<td>浅白</td>
+<td>蜷缩</td>
+<td>浊响</td>
+<td>模糊</td>
+<td>平坦</td>
+<td>软粘</td>
+<td>否</td>
+</tr>
+<tr>
+<td>13</td>
+<td>青绿</td>
+<td>稍蜷</td>
+<td>浊响</td>
+<td>稍糊</td>
+<td>凹陷</td>
+<td>硬滑</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>首先根据信息增益准则构建决策树。<br><img src="https://static.illidan.cn/img/20200808230224.png" alt="Alt text"></p>
+<h3 id="预剪枝"><a href="#预剪枝" class="headerlink" title="预剪枝"></a>预剪枝</h3><p><img src="https://static.illidan.cn/img/20200808230233.png" alt="Alt text"><br>优点：降低过拟合风险，显著减少训练时间开销和测试时间开销。<br>缺点：带来了欠拟合风险</p>
+<h3 id="后剪枝"><a href="#后剪枝" class="headerlink" title="后剪枝"></a>后剪枝</h3><p><img src="https://static.illidan.cn/img/20200808230311.png" alt="Alt text"><br>优点：欠拟合风险小<br>缺点：后剪枝是在完全生成决策树之后进行的，时间开销大。</p>
+
+
+  </article>
+  </script>
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+  </script>
+  <div class="busuanzi center">
+    page PV:&nbsp;<span id="busuanzi_value_page_pv"></span>&nbsp;・&nbsp;
+    site PV:&nbsp;<span id="busuanzi_value_site_pv"></span>&nbsp;・&nbsp;
+    site UV:&nbsp;<span id="busuanzi_value_site_uv"></span>
+  </div>
+
+
+    
+
+
+
+
+
+    </div>
+  </div>
+  <footer class="page-footer"><div class="clearfix"></div>
+<div class="right-foot">
+    <div class="firstrow">
+        <a href="#top" target="_self">
+            <svg class="i-caret-right" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor"
+                stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+                <path d="M10 30 L26 16 10 2 Z"></path>
+            </svg>
+        </a>
+        © Kung's 2018-2020
+    </div>
+    <div class="secondrow">
+        <a target="_blank" rel="noopener" href="https://github.com/gaoryrt/hexo-theme-pln">
+            Theme Pln
+        </a>
+    </div>
+</div>
+<div class="clearfix"></div>
+<div class="sponsor">
+    本网站由
+    <img class="logo" src="/img/upyun.png" />
+    提供云存储服务
+</div>
+</footer>
+  <script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+<script src="/js/search.min.js"></script>
+
+
+<!-- mathjax config similar to math.stackexchange -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\(","\)"] ],
+        processEscapes: true
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src='https://cdn.bootcss.com/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML'></script>
+
+<script type="text/javascript">
+
+// disqus scripts
+
+
+// dropdown scripts
+$(".dropdown").click(function(event) {
+  var current = $(this);
+  event.stopPropagation();
+  $(current).children(".dropdown-content")[($(current).children(".dropdown-content").hasClass("open"))?'removeClass':'addClass']("open")
+});
+$(document).click(function(){
+    $(".dropdown-content").removeClass("open");
+})
+
+var path = "/search.xml";
+searchFunc(path, 'local-search-input', 'local-search-result');
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="google-site-verification" content="" />
+  
+  <title>从单机事务到分布式事务</title>
+  <meta name="author" content="Kung">
+  <meta name="description" content="事务(Transaction)，是指一组连续的操作，这些操作组合成一个逻辑的、完整的操作。即这组操作执行前后，系统需要处于一个可预知的、一致的状态。因此，这一组操作要么都成功执行，要么都不能执行；如果部分成功，部分失败，成功的部分需要回滚（rollback）。
+
+关系型数据库事务在关系型数据库中，如">
+  
+  
+  <meta property="og:title" content="从单机事务到分布式事务"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:site_name" content="Kung&#39;s"/>
+  <link href="/apple-touch-icon-precomposed.png" sizes="180x180" rel="apple-touch-icon-precomposed">
+  <link rel="alternate" href="/atom.xml" title="Kung&#39;s" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/m.min.css">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+<body>
+  <a id="top"></a>
+  <div id="main">
+    <div class="main-ctnr">
+      <div class="behind">
+  <a href="/" class="back black-color">
+    <svg class="i-close" viewBox="0 0 32 32" width="22" height="22" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+        <path d="M2 30 L30 2 M30 30 L2 2"></path>
+    </svg>
+  </a>
+  <div class="description">
+    &nbsp;银鞍照白马, 飒沓如流星
+  </div>
+</div>
+
+
+  <article class="standard post">
+    <div class="title">
+      
+  
+    <h1 class="page-title center">
+        从单机事务到分布式事务
+    </h1>
+  
+
+
+    </div>
+    <div class="meta center">
+      <time datetime="2018-03-23T10:23:28.000Z" itemprop="datePublished">
+  <svg class="i-calendar" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+    <path d="M2 6 L2 30 30 30 30 6 Z M2 15 L30 15 M7 3 L7 9 M13 3 L13 9 M19 3 L19 9 M25 3 L25 9"></path>
+  </svg>
+  &nbsp;
+  2018-03-23
+</time>
+
+
+
+
+
+    
+    &nbsp;
+    <svg class="i-tag" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+      <circle cx="24" cy="8" r="2"></circle>
+      <path d="M2 18 L18 2 30 2 30 14 14 30 Z"></path>
+    </svg>
+    &nbsp;
+    <a href="/tags/Java/">Java</a>
+
+
+    </div>
+    <hr>
+    
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%B3%E7%B3%BB%E5%9E%8B%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1"><span class="toc-text">关系型数据库事务</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1"><span class="toc-text">分布式事务</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2PC"><span class="toc-text">2PC</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3PC"><span class="toc-text">3PC</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#TCC"><span class="toc-text">TCC</span></a></li></ol></li></ol>
+    
+    <div class="picture-container">
+      
+    </div>
+    <blockquote>
+<p>事务(Transaction)，是指一组连续的操作，这些操作组合成一个逻辑的、完整的操作。即这组操作执行前后，系统需要处于一个可预知的、一致的状态。因此，这一组操作要么都成功执行，要么都不能执行；如果部分成功，部分失败，成功的部分需要回滚（rollback）。</p>
+</blockquote>
+<h1 id="关系型数据库事务"><a href="#关系型数据库事务" class="headerlink" title="关系型数据库事务"></a>关系型数据库事务</h1><p>在关系型数据库中，如果一组操作满足ACID特性，那么称之为一个事务。</p>
+<ul>
+<li><code>A</code>  原子性</li>
+<li><code>C</code>  一致性</li>
+<li><code>I</code>  隔离性</li>
+<li><code>D</code>  持久性</li>
+</ul>
+<h1 id="分布式事务"><a href="#分布式事务" class="headerlink" title="分布式事务"></a>分布式事务</h1><p>当数据的规模越来越大，超出了单个关系型数据库的处理能力，这个时候就出现了关系型数据的垂直分表或者水平分表，也出现了天然支持水平扩展（sharding）的NoSql。另外，大型网站的服务化（SOA）以及这两年非常火的微服务，往往将服务进行拆分，单独部署，自然也使用独立的数据库，甚至是异构的数据库。这个时候，关系型数据库保证事务的手段，比如加锁、日志就行不通了。<br>分布式事务的最大挑战在于CAP。简而言之，由于网络分区（P： Network Partition）的存在，用户不得不在一致性（C： Consistency）与可用性（A： Avaliable）之前做权衡。如果要保证强一致性（主要是应用层面的强一致性），那么在网络分区的时候，系统就不可用；如果要保证高可用性，那么就只能提供弱一致性，保证最终一致。</p>
+<h2 id="2PC"><a href="#2PC" class="headerlink" title="2PC"></a>2PC</h2><p>两阶段提交协议 (<code>two-phase commit protocol</code>) 是非常经典的强一致性、中心化的原子提交协议。中心化是指协议中有两类节点：一个中心化协调者节点（coordinator）和N个参与者节点（participant、cohort）<br>顾名思义，两阶段提交协议的每一次事务提交分为两个阶段：</p>
+<ul>
+<li>在第一阶段，协调者询问所有的参与者是否可以提交事务（请参与者投票），所有参与者向协调者投票。</li>
+<li>在第二阶段，协调者根据所有参与者的投票结果做出是否事务可以全局提交的决定，并通知所有的参与者执行该决定。在一个两阶段提交流程中，参与者不能改变自己的投票结果。两阶段提交协议的可以全局提交的前提是所有的参与者都同意提交事务，只要有一个参与者投票选择放弃(abort)事务，则事务必须被放弃<br>两阶段提交协议也依赖与日志，只要存储介质不出问题，两阶段协议就能最终达到一致的状态（成功或者回滚）</li>
+<li>优点：强一致性，只要节点或者网络最终恢复正常，协议就能保证顺利结束；部分关系型数据库（Oracle）、框架直接支持</li>
+<li>缺点：两阶段提交协议的容错能力较差，比如在节点宕机或者超时的情况下，无法确定流程的状态，只能不断重试；两阶段提交协议的性能较差， 消息交互多，且受最慢节点影响</li>
+</ul>
+<blockquote>
+<p>基于两阶段提交的分布式事务在提交事务时需要在多个节点之间进行协调,最大限度地推后了提交事务的时间点，客观上延长了事务的执行时间，这会导致事务在访问共享资源时发生冲突和死锁的概率增高，随着数据库节点的增多，这种趋势会越来越严重，从而成为系统在数据库层面上水平伸缩的”枷锁”， 这是很多Sharding系统不采用分布式事务的主要原因。</p>
+</blockquote>
+<h2 id="3PC"><a href="#3PC" class="headerlink" title="3PC"></a>3PC</h2><p>三阶段提交协议（ <code>Three-phase_commit_protocol</code>）主要是为了解决两阶段提交协议的阻塞问题，从原来的两个阶段扩展为三个阶段，CanCommit、PreCommit、DoCommit。</p>
+<h2 id="TCC"><a href="#TCC" class="headerlink" title="TCC"></a>TCC</h2><p>TCC(Try/Commit/Cancel)，在国内由于支付宝的布道而广为人知，TCC在保证强一致性的同时，最大限度提高系统的可伸缩性与可用性。</p>
+<ul>
+<li>Try操作完成所有的子业务检查，预留必要的业务资源，实现与其他事务的隔离</li>
+<li>Confirm使用Try阶段预留的业务资源真正执行业务，而且Confirm操作满足幂等性，以便支持重试</li>
+<li>Cancel操作释放Try阶段预留的业务资源，同样也满足幂等性。“一次完整的交易由一系列微交易的Try 操作组成，如果所有的Try 操作都成功，最终由微交易框架来统一Confirm，否则统一Cancel，从而实现了类似经典两阶段提交协议（2PC）的强一致性</li>
+</ul>
+<p>与2PC协议比较 ，TCC拥有以下特点：</p>
+<ul>
+<li>位于业务服务层而非资源层 ，由业务层保证原子性</li>
+<li>没有单独的准备(Prepare)阶段，降低了提交协议的成本</li>
+<li>Try操作 兼备资源操作与准备能力 </li>
+<li>Try操作可以灵活选择业务资源的锁定粒度，而不是锁住整个资源，提高了并发度<br>但TCC需要较高的开发成本，每个子业务都需要有响应的comfirm、Cancel操作，即实现相应的补偿逻辑。</li>
+</ul>
+
+
+  </article>
+  </script>
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+  </script>
+  <div class="busuanzi center">
+    page PV:&nbsp;<span id="busuanzi_value_page_pv"></span>&nbsp;・&nbsp;
+    site PV:&nbsp;<span id="busuanzi_value_site_pv"></span>&nbsp;・&nbsp;
+    site UV:&nbsp;<span id="busuanzi_value_site_uv"></span>
+  </div>
+
+
+    
+
+
+
+
+
+    </div>
+  </div>
+  <footer class="page-footer"><div class="clearfix"></div>
+<div class="right-foot">
+    <div class="firstrow">
+        <a href="#top" target="_self">
+            <svg class="i-caret-right" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor"
+                stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+                <path d="M10 30 L26 16 10 2 Z"></path>
+            </svg>
+        </a>
+        © Kung's 2018-2020
+    </div>
+    <div class="secondrow">
+        <a target="_blank" rel="noopener" href="https://github.com/gaoryrt/hexo-theme-pln">
+            Theme Pln
+        </a>
+    </div>
+</div>
+<div class="clearfix"></div>
+<div class="sponsor">
+    本网站由
+    <img class="logo" src="/img/upyun.png" />
+    提供云存储服务
+</div>
+</footer>
+  <script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+<script src="/js/search.min.js"></script>
+
+
+<script type="text/javascript">
+
+// disqus scripts
+
+
+// dropdown scripts
+$(".dropdown").click(function(event) {
+  var current = $(this);
+  event.stopPropagation();
+  $(current).children(".dropdown-content")[($(current).children(".dropdown-content").hasClass("open"))?'removeClass':'addClass']("open")
+});
+$(document).click(function(){
+    $(".dropdown-content").removeClass("open");
+})
+
+var path = "/search.xml";
+searchFunc(path, 'local-search-input', 'local-search-result');
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="google-site-verification" content="" />
+  
+  <title>log4j源码分析</title>
+  <meta name="author" content="Kung">
+  <meta name="description" content="Log4j 概述日志（logging）是开发周期中非常重要的组件，它能够提供程序运行时的精确内容，事后可保存下来研究。但是，日志也会降低程序速度，如果内容太详细，会令你瞎眼在茫茫日志语句中。Log4j的设计目标就是可靠性、快速和扩展性。Log4j由三种组件组成：
+
+Logger：日记信息生成器 
+A">
+  
+  
+  <meta property="og:title" content="log4j源码分析"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:site_name" content="Kung&#39;s"/>
+  <link href="/apple-touch-icon-precomposed.png" sizes="180x180" rel="apple-touch-icon-precomposed">
+  <link rel="alternate" href="/atom.xml" title="Kung&#39;s" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/m.min.css">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+<body>
+  <a id="top"></a>
+  <div id="main">
+    <div class="main-ctnr">
+      <div class="behind">
+  <a href="/" class="back black-color">
+    <svg class="i-close" viewBox="0 0 32 32" width="22" height="22" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+        <path d="M2 30 L30 2 M30 30 L2 2"></path>
+    </svg>
+  </a>
+  <div class="description">
+    &nbsp;银鞍照白马, 飒沓如流星
+  </div>
+</div>
+
+
+  <article class="standard post">
+    <div class="title">
+      
+  
+    <h1 class="page-title center">
+        log4j源码分析
+    </h1>
+  
+
+
+    </div>
+    <div class="meta center">
+      <time datetime="2018-03-20T23:57:09.000Z" itemprop="datePublished">
+  <svg class="i-calendar" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+    <path d="M2 6 L2 30 30 30 30 6 Z M2 15 L30 15 M7 3 L7 9 M13 3 L13 9 M19 3 L19 9 M25 3 L25 9"></path>
+  </svg>
+  &nbsp;
+  2018-03-20
+</time>
+
+
+
+
+
+    
+    &nbsp;
+    <svg class="i-tag" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+      <circle cx="24" cy="8" r="2"></circle>
+      <path d="M2 18 L18 2 30 2 30 14 14 30 Z"></path>
+    </svg>
+    &nbsp;
+    <a href="/tags/Java/">Java</a>
+
+
+    </div>
+    <hr>
+    
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Log4j-%E6%A6%82%E8%BF%B0"><span class="toc-text">Log4j 概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Log4j-%E6%84%8F%E4%B9%89"><span class="toc-text">Log4j 意义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Log4j-Manual"><span class="toc-text">Log4j Manual</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Logger-hierarchy"><span class="toc-text">Logger hierarchy</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#root-Logger"><span class="toc-text">root Logger</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Level"><span class="toc-text">Level</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Appender-and-Layout"><span class="toc-text">Appender and Layout</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B"><span class="toc-text">示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-text">源码分析</span></a></li></ol>
+    
+    <div class="picture-container">
+      
+    </div>
+    <h2 id="Log4j-概述"><a href="#Log4j-概述" class="headerlink" title="Log4j 概述"></a>Log4j 概述</h2><p>日志（logging）是开发周期中非常重要的组件，它能够提供程序运行时的精确内容，事后可保存下来研究。但是，日志也会降低程序速度，如果内容太详细，会令你瞎眼在茫茫日志语句中。Log4j的设计目标就是可靠性、快速和扩展性。Log4j由三种组件组成：</p>
+<ul>
+<li>Logger：日记信息生成器 </li>
+<li>Appender：日志信息的输出目标（output destination） </li>
+<li>Layout：日志信息（logging request）的显示格式</li>
+</ul>
+<hr>
+<h2 id="Log4j-意义"><a href="#Log4j-意义" class="headerlink" title="Log4j 意义"></a>Log4j 意义</h2><blockquote>
+<p>The first and foremost advantage of any logging API over plain System.out.println resides in its ability to disable certain log statements while allowing others to print unhindered. —<a target="_blank" rel="noopener" href="http://logging.apache.org/log4j/1.2/manual.html">log4j/1.2/manual</a></p>
+</blockquote>
+<p>log4j进行了两次分类：</p>
+<ol>
+<li>最简单的是对log statement的等级分类，trace &lt; debug &lt; info &lt; warn &lt; error &lt; fatal。比如输出日志时，若设阈值为info则只有level不低于info的才可以输出（因此log statement又被视为log request），那么trace和dubug的日志就被禁止了，就像“未成年人禁止进入网吧”一样，再配置日志的输出目标和输出格式后就可以打印出来。 </li>
+<li>对这些有level的log request再外包一层java class，称为Logger，可提供更丰富的日志控制机制。比如，为不同的Logger配置不同的输出目标和格式；下级Logger默认接受上级Logger的输出配置；Logger也有level，这个level用于控制其下的log request的输出阈值，即“只有level不低于info的才可以输出”一句中的info；实际经验中，还经常需要插入log request的java class的信息，结合反射机制，就可以一口气令Logger获得，精简代码。 </li>
+</ol>
+<p>除此之外，log4j能够将日志输出到多种、多个目标地，如控制台、文件、GUI组件、套接口服务器、NT的事件记录器、UNIX Syslog守护进程等，甚至异步输出，并且可以控制每一条日志的输出格式。</p>
+<hr>
+<h2 id="Log4j-Manual"><a href="#Log4j-Manual" class="headerlink" title="Log4j Manual"></a>Log4j Manual</h2><p>简单记录官方的Manual，只阐述结果，具体的解析看下一节会更加明白。</p>
+<h3 id="Logger-hierarchy"><a href="#Logger-hierarchy" class="headerlink" title="Logger hierarchy"></a>Logger hierarchy</h3><p>Logger根据命名分层级（Named Hierarchy），子名用父名作为前缀，用点“.”分隔，类似package命名习惯，例如com.foo是com.foo.Bar的父亲，com是com.foo.Bar的祖先。</p>
+<h3 id="root-Logger"><a href="#root-Logger" class="headerlink" title="root Logger"></a>root Logger</h3><p>root Logger是所有Logger的祖先，有如下属性： </p>
+<ul>
+<li>总是存在的 </li>
+<li>不可以通过名字获得</li>
+</ul>
+<p>root Logger通过 Logger.getRootLogger 方法获得。其他的Logger通过 Logger.getLogger(name) 方法获得，并且传递同样的参数name总是返回同一个Logger实例的引用。</p>
+<h3 id="Level"><a href="#Level" class="headerlink" title="Level"></a>Level</h3><p>Logger的level相当于java class的成员变量一样，遵循继承机制（Level Inheritance）。用于控制其下各log request的是否能够输出，如果log request的level不小于产生它的Logger的level，则它是enabled，否则是disabled（Basic Selection Rule）</p>
+<h3 id="Appender-and-Layout"><a href="#Appender-and-Layout" class="headerlink" title="Appender and Layout"></a>Appender and Layout</h3><p>调用 addAppender 方法可将Appender绑到Logger，指定Logger的一个输出目标。每一个enabled logging request都会被传递给它的Logger的所有Appenders和这个Logger的祖先的所有Appedenrs进行输出（Appenders Additivity）。如果将某个Logger CC的additive设为false，相当于分了家，表示不需要祖先的Appenders，这个Logger CC的子孙的additive默认仍是true，只向上继承到Logger CC的Appenders。<br>Layout是类似String.format(..)一样的文本格式化，具体可见PatternLayout类。</p>
+<h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 初始化Logger</span></span><br><span class="line">Logger barlogger = Logger.getLogger(<span class="string">&quot;com.foo.Bar&quot;</span>);</span><br><span class="line">Logger logger = Logger.getLogger(<span class="string">&quot;com.foo&quot;</span>); </span><br><span class="line">BasicConfigurator.configure();</span><br><span class="line"></span><br><span class="line">logger.debug(<span class="string">&quot;before set level&quot;</span>);<span class="comment">// 可以输出</span></span><br><span class="line"><span class="comment">// 重新设置Level</span></span><br><span class="line">logger.setLevel(Level.INFO);</span><br><span class="line"></span><br><span class="line">logger.debug(<span class="string">&quot;after set level&quot;</span>);<span class="comment">// 不能输出</span></span><br><span class="line">barlogger.info(<span class="string">&quot;after set level&quot;</span>);<span class="comment">// 可以输出</span></span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h2><p>针对上面的范例，可以从源码分析出Logger层次特征、输出目标Appenders和level控制是如何实现的，主要涉及的类和接口如下图所示。其中，Logger、LogManager、Hierarchy和Catagory最为重要。<br><img src="https://static.illidan.cn/img/20200808230957.jpeg" alt="Alt text"></p>
+<ol>
+<li><code>Logger.getLogger(&quot;com.foo.Bar&quot;)</code>和<code>Logger.getLogger(&quot;com.foo&quot;)</code></li>
+</ol>
+<p>在Logger的静态方法<code>getLogger(..)</code>中，实际是去调用LogManager的静态方法，代码如下。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Logger <span class="title">getLogger</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> LogManager.getLogger(name);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在LogManager类中有static块，JVM在载入LogManager类后会先执行static块，简略代码如下。初始化Hierarchy，然后查找外设的配置信息。注意到root的level是debug等级的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> &#123;</span><br><span class="line">   Hierarchy h = <span class="keyword">new</span> Hierarchy(<span class="keyword">new</span> RootLogger(Level.DEBUG));</span><br><span class="line">   repositorySelector = <span class="keyword">new</span> DefaultRepositorySelector(h);</span><br><span class="line">   <span class="comment">/* 在CLASSPATH查找是否有配置信息 */</span></span><br><span class="line">   <span class="comment">/* 在当前目录查找是否有log4j.xml配置文件 */</span></span><br><span class="line">   <span class="comment">/* 在当前目录查找是否有log4j.properties配置文件 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>先关注到初始化Hierarchy结构这里，Hierarchy是一个实现了LoggerRepository接口的重要类，它的逻辑结构类似树，构造函数代码如下。主要的初始化工作包括root、level、ht等，ht是一个HashTable类型的成员变量，它是各个Logger实际存储的物理结构。<br>注意到Hierarchy是all等级的，任何都允许，虽然这在范例中并没有利用到，但是实际上Hierarchy也有阈值level控制程序中所有的Logger。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> LoggerFactory defaultFactory;</span><br><span class="line"><span class="keyword">private</span> Vector listeners = <span class="keyword">new</span> Vector(<span class="number">1</span>);</span><br><span class="line">Hashtable ht = <span class="keyword">new</span> Hashtable();</span><br><span class="line">Logger root;</span><br><span class="line">RendererMap rendererMap;</span><br><span class="line"><span class="keyword">int</span> thresholdInt;</span><br><span class="line">Level threshold;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">Hierarchy</span><span class="params">(Logger root)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.root = root;</span><br><span class="line">    <span class="comment">// Enable all level levels by default.</span></span><br><span class="line">    <span class="keyword">this</span>.setThreshold(Level.ALL);</span><br><span class="line">    <span class="keyword">this</span>.root.setHierarchy(<span class="keyword">this</span>);</span><br><span class="line">    <span class="keyword">this</span>.rendererMap = <span class="keyword">new</span> RendererMap();</span><br><span class="line">    <span class="keyword">this</span>.defaultFactory = <span class="keyword">new</span> DefaultCategoryFactory();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再回来看<code>LogManager.getLogger(..)</code>，代码如下。绕了几圈后（因为抽象了repositorySelector），其实是调用Hierarchy实例的<code>getLogger(..)</code>方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Logger <span class="title">getLogger</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> getLoggerRepository().getLogger(name);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>重头戏就是Hierarchy的<code>getLogger(..)</code>方法，代码如下。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Logger <span class="title">getLogger</span><span class="params">(String name, LoggerFactory factory)</span> </span>&#123;</span><br><span class="line">    CategoryKey key = <span class="keyword">new</span> CategoryKey(name);</span><br><span class="line">    Hashtable var5 = <span class="keyword">this</span>.ht;</span><br><span class="line">    <span class="keyword">synchronized</span>(<span class="keyword">this</span>.ht) &#123;</span><br><span class="line">        Object o = <span class="keyword">this</span>.ht.get(key);</span><br><span class="line">        Logger logger;</span><br><span class="line">        <span class="keyword">if</span> (o == <span class="keyword">null</span>) &#123;</span><br><span class="line">            logger = factory.makeNewLoggerInstance(name);</span><br><span class="line">            logger.setHierarchy(<span class="keyword">this</span>);</span><br><span class="line">            <span class="keyword">this</span>.ht.put(key, logger);</span><br><span class="line">            <span class="keyword">this</span>.updateParents(logger);</span><br><span class="line">            <span class="keyword">return</span> logger;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (o <span class="keyword">instanceof</span> Logger) &#123;</span><br><span class="line">            <span class="keyword">return</span> (Logger)o;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (o <span class="keyword">instanceof</span> ProvisionNode) &#123;</span><br><span class="line">            logger = factory.makeNewLoggerInstance(name);</span><br><span class="line">            logger.setHierarchy(<span class="keyword">this</span>);</span><br><span class="line">            <span class="keyword">this</span>.ht.put(key, logger);</span><br><span class="line">            <span class="keyword">this</span>.updateChildren((ProvisionNode)o, logger);</span><br><span class="line">            <span class="keyword">this</span>.updateParents(logger);</span><br><span class="line">            <span class="keyword">return</span> logger;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>有三种情况： </p>
+<ul>
+<li><code>o instanceof Logger</code></li>
+</ul>
+<p>如果HashTable已有这个name的logger就直接取出返回 </p>
+<ul>
+<li><code>o == null</code></li>
+</ul>
+<p>对完全陌生的”com.foo.Bar”，会创建Logger实例放入HashTable，并调用updateParents(logger)更新所有的祖先，代码如下。<br>这个更新操作相当于建立”com.foo”和”com”的ProvisionNode类的伪结点，并插入HashTable，它们都只知道有一个孩子是”com.foo.Bar”，而”com.foo.Bar”的parent指向root。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">updateParents</span><span class="params">(Logger cat)</span> </span>&#123;</span><br><span class="line">    String name = cat.name;</span><br><span class="line">    <span class="keyword">int</span> length = name.length();</span><br><span class="line">    <span class="keyword">boolean</span> parentFound = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = name.lastIndexOf(<span class="number">46</span>, length - <span class="number">1</span>); i &gt;= <span class="number">0</span>; i = name.lastIndexOf(<span class="number">46</span>, i - <span class="number">1</span>)) &#123;</span><br><span class="line">        String substr = name.substring(<span class="number">0</span>, i);</span><br><span class="line">        CategoryKey key = <span class="keyword">new</span> CategoryKey(substr);</span><br><span class="line">        Object o = <span class="keyword">this</span>.ht.get(key);</span><br><span class="line">        <span class="keyword">if</span> (o == <span class="keyword">null</span>) &#123;</span><br><span class="line">            ProvisionNode pn = <span class="keyword">new</span> ProvisionNode(cat);</span><br><span class="line">            <span class="keyword">this</span>.ht.put(key, pn);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (o <span class="keyword">instanceof</span> Category) &#123;</span><br><span class="line">                parentFound = <span class="keyword">true</span>;</span><br><span class="line">                cat.parent = (Category)o;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (o <span class="keyword">instanceof</span> ProvisionNode) &#123;</span><br><span class="line">                ((ProvisionNode)o).addElement(cat);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                Exception e = <span class="keyword">new</span> IllegalStateException(<span class="string">&quot;unexpected object type &quot;</span> + o.getClass() + <span class="string">&quot; in ht.&quot;</span>);</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!parentFound) &#123;</span><br><span class="line">        cat.parent = <span class="keyword">this</span>.root;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>执行<code>Logger.getLogger(“com.foo.Bar”)</code>结果如下。<br><img src="http://www.illidan.cn/2018/03/log4j-source-analysis/612158591.png" alt="Alt text"></p>
+<ul>
+<li><code>o instanceof ProvisionNode</code></li>
+</ul>
+<p>随后执行<code>Logger.getLogger(“com.foo”)</code>，再创建Logger实例放入HableTable并调用<code>updateChildren((ProvisionNode) o, logger)</code>和<code>updateParents(logger)</code>。<br>第一个操作是更新子孙，代码如下。因为已有”com.foo”的ProvisionNode，它知道子孙是”com.foo.Bar”的Logger（且没有正确找到父亲），则”com.foo”的Logger会在”com.foo.Bar”的Logger这做一个相当于树结构的插入操作。<br>第二个操作是更新祖先。会更新”com”的子孙为”com.foo.Bar”和”com.foo”，继续以ProvisionNode伪结点的方式存在。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">updateChildren</span><span class="params">(ProvisionNode pn, Logger logger)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> last = pn.size();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; last; ++i) &#123;</span><br><span class="line">        Logger l = (Logger)pn.elementAt(i);</span><br><span class="line">        <span class="keyword">if</span> (!l.parent.name.startsWith(logger.name)) &#123;</span><br><span class="line">            logger.parent = l.parent;</span><br><span class="line">            l.parent = logger;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后执行<code>Logger.getLogger(&quot;com.foo&quot;)</code>的结果如下。<br><img src="https://static.illidan.cn/img/20200808231042.png" alt="Alt text"><br>如果继续调用<code>Logger.getLogger(&quot;com&quot;)</code>，更新子孙只需要在”com.foo”处直接插入，更新祖先指向root，结果如下。<br><img src="https://static.illidan.cn/img/20200808231047.png" alt="Alt text"></p>
+<ol>
+<li><code>BasicConfigurator.configure()</code></li>
+</ol>
+<p>先看<code>configure()</code>的代码如下。把一个ConsoleAppender加给了root logger。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Logger root = Logger.getRootLogger();</span><br><span class="line">    root.addAppender(<span class="keyword">new</span> ConsoleAppender(<span class="keyword">new</span> PatternLayout(<span class="string">&quot;%r [%t] %p %c %x - %m%n&quot;</span>)));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再看Logger类的addAppender方法（继承自Categeory类），代码如下。实际Logger类用AppenderAttachableImpl（接AppenderAttachabl的一种Vector实现）来作为Appender的容器，addAppender方法就是在扩充这个容器。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">addAppender</span><span class="params">(Appender newAppender)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.aai == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">this</span>.aai = <span class="keyword">new</span> AppenderAttachableImpl();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">this</span>.aai.addAppender(newAppender);</span><br><span class="line">    <span class="keyword">this</span>.repository.fireAddAppenderEvent(<span class="keyword">this</span>, newAppender);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li><code>logger.debug()</code></li>
+</ol>
+<p>调用Catagory类的debug()方法代码如下。要先判断Hierarchy的level阈值是否允许。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">debug</span><span class="params">(Object message)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!<span class="keyword">this</span>.repository.isDisabled(<span class="number">10000</span>)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (Level.DEBUG.isGreaterOrEqual(<span class="keyword">this</span>.getEffectiveLevel())) &#123;</span><br><span class="line">            <span class="keyword">this</span>.forcedLog(FQCN, Level.DEBUG, message, (Throwable)<span class="keyword">null</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再判断level不为null的最近的祖先（含自己）是否允许。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Level <span class="title">getEffectiveLevel</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(Category c = <span class="keyword">this</span>; c != <span class="keyword">null</span>; c = c.parent) &#123;</span><br><span class="line">        <span class="keyword">if</span> (c.level != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> c.level;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由于默认Hierarchy的level为all，root的level为debug，debug&gt;=debug，则可以顺利跳入<code>forcelog(..)</code>，<code>forcelog(..)</code>再跳入<code>callAppenders(..)</code>，其代码如下。方法<code>appendLoopOnAppenders(..)</code>就是向容器里的各个Appender通知LoggingEvent（观察者模式），通知的过程是一个父结点回溯的过程，会通知所有的祖先。除非某个Logger的additive是false，则回溯过程会立刻终止跳出。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">callAppenders</span><span class="params">(LoggingEvent event)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> writes = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(Category c = <span class="keyword">this</span>; c != <span class="keyword">null</span>; c = c.parent) &#123;</span><br><span class="line">        <span class="keyword">synchronized</span>(c) &#123;</span><br><span class="line">            <span class="keyword">if</span> (c.aai != <span class="keyword">null</span>) &#123;</span><br><span class="line">                writes += c.aai.appendLoopOnAppenders(event);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (!c.additive) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (writes == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">this</span>.repository.emitNoAppenderWarning(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">appendLoopOnAppenders</span><span class="params">(LoggingEvent event)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> size = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.appenderList != <span class="keyword">null</span>) &#123;</span><br><span class="line">        size = <span class="keyword">this</span>.appenderList.size();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; size; ++i) &#123;</span><br><span class="line">            Appender appender = (Appender)<span class="keyword">this</span>.appenderList.elementAt(i);</span><br><span class="line">            appender.doAppend(event);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> size;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li><code>logger.setLevel(Level.INFO)</code>、<code>logger.debug(&quot;after set level&quot;)</code>和<code>barlogger.info(&quot;after set level&quot;)</code></li>
+</ol>
+<p>这三句实际在 3 中已经分析了，同样是受到Hierarchy和最近祖先（含自己）的level的影响。</p>
+
+
+  </article>
+  </script>
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+  </script>
+  <div class="busuanzi center">
+    page PV:&nbsp;<span id="busuanzi_value_page_pv"></span>&nbsp;・&nbsp;
+    site PV:&nbsp;<span id="busuanzi_value_site_pv"></span>&nbsp;・&nbsp;
+    site UV:&nbsp;<span id="busuanzi_value_site_uv"></span>
+  </div>
+
+
+    
+
+
+
+
+
+    </div>
+  </div>
+  <footer class="page-footer"><div class="clearfix"></div>
+<div class="right-foot">
+    <div class="firstrow">
+        <a href="#top" target="_self">
+            <svg class="i-caret-right" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor"
+                stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+                <path d="M10 30 L26 16 10 2 Z"></path>
+            </svg>
+        </a>
+        © Kung's 2018-2020
+    </div>
+    <div class="secondrow">
+        <a target="_blank" rel="noopener" href="https://github.com/gaoryrt/hexo-theme-pln">
+            Theme Pln
+        </a>
+    </div>
+</div>
+<div class="clearfix"></div>
+<div class="sponsor">
+    本网站由
+    <img class="logo" src="/img/upyun.png" />
+    提供云存储服务
+</div>
+</footer>
+  <script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+<script src="/js/search.min.js"></script>
+
+
+<script type="text/javascript">
+
+// disqus scripts
+
+
+// dropdown scripts
+$(".dropdown").click(function(event) {
+  var current = $(this);
+  event.stopPropagation();
+  $(current).children(".dropdown-content")[($(current).children(".dropdown-content").hasClass("open"))?'removeClass':'addClass']("open")
+});
+$(document).click(function(){
+    $(".dropdown-content").removeClass("open");
+})
+
+var path = "/search.xml";
+searchFunc(path, 'local-search-input', 'local-search-result');
+
+</script>
+
+</body>
+</html>

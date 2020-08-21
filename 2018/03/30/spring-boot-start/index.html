@@ -1,0 +1,166 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="google-site-verification" content="" />
+  
+  <title>SpringBoot启动流程</title>
+  <meta name="author" content="Kung">
+  <meta name="description" content="SpringBoot最近释出了2.0正式版版本，尝试在项目中使用SpringBoot来简化配置，提高开发效率。
+
+创建项目通过阅读SpringBoot入门相关文档，开始编写一个实例工程：123456@SpringBootApplicationpublic class Application &amp;#12">
+  
+  
+  <meta property="og:title" content="SpringBoot启动流程"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:site_name" content="Kung&#39;s"/>
+  <link href="/apple-touch-icon-precomposed.png" sizes="180x180" rel="apple-touch-icon-precomposed">
+  <link rel="alternate" href="/atom.xml" title="Kung&#39;s" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/m.min.css">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+<body>
+  <a id="top"></a>
+  <div id="main">
+    <div class="main-ctnr">
+      <div class="behind">
+  <a href="/" class="back black-color">
+    <svg class="i-close" viewBox="0 0 32 32" width="22" height="22" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+        <path d="M2 30 L30 2 M30 30 L2 2"></path>
+    </svg>
+  </a>
+  <div class="description">
+    &nbsp;银鞍照白马, 飒沓如流星
+  </div>
+</div>
+
+
+  <article class="standard post">
+    <div class="title">
+      
+  
+    <h1 class="page-title center">
+        SpringBoot启动流程
+    </h1>
+  
+
+
+    </div>
+    <div class="meta center">
+      <time datetime="2018-03-30T16:43:39.000Z" itemprop="datePublished">
+  <svg class="i-calendar" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+    <path d="M2 6 L2 30 30 30 30 6 Z M2 15 L30 15 M7 3 L7 9 M13 3 L13 9 M19 3 L19 9 M25 3 L25 9"></path>
+  </svg>
+  &nbsp;
+  2018-03-30
+</time>
+
+
+
+
+
+    
+    &nbsp;
+    <svg class="i-tag" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+      <circle cx="24" cy="8" r="2"></circle>
+      <path d="M2 18 L18 2 30 2 30 14 14 30 Z"></path>
+    </svg>
+    &nbsp;
+    <a href="/tags/Java/">Java</a>·<a href="/tags/Spring/">Spring</a>
+
+
+    </div>
+    <hr>
+    
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E9%A1%B9%E7%9B%AE"><span class="toc-text">创建项目</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%87%8D%E8%A6%81%E6%B3%A8%E8%A7%A3"><span class="toc-text">重要注解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SpringBootApplication"><span class="toc-text">@SpringBootApplication</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SpringBootConfiguration"><span class="toc-text">@SpringBootConfiguration</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ComponentScan"><span class="toc-text">@ComponentScan</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#EnableAutoConfiguration"><span class="toc-text">@EnableAutoConfiguration</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B"><span class="toc-text">启动流程</span></a></li></ol>
+    
+    <div class="picture-container">
+      
+    </div>
+    <p>SpringBoot最近释出了2.0正式版版本，尝试在项目中使用SpringBoot来简化配置，提高开发效率。</p>
+<hr>
+<h2 id="创建项目"><a href="#创建项目" class="headerlink" title="创建项目"></a>创建项目</h2><p>通过阅读SpringBoot入门相关文档，开始编写一个实例工程：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">@SpringBootApplication</span><br><span class="line">public class Application &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        SpringApplication.run(Application.class, args);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>只需要在类上添加<code>@SpringBootApplication</code>注解和调用<code>SpringBootApplication.run</code>静态方法就可以直接启动项目，所以就从这开始分析SpringBoot的启动流程。</p>
+<h2 id="重要注解"><a href="#重要注解" class="headerlink" title="重要注解"></a>重要注解</h2><h3 id="SpringBootApplication"><a href="#SpringBootApplication" class="headerlink" title="@SpringBootApplication"></a>@SpringBootApplication</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">@Target(&#123;ElementType.TYPE&#125;)</span><br><span class="line">@Retention(RetentionPolicy.RUNTIME)</span><br><span class="line">@Documented</span><br><span class="line">@Inherited</span><br><span class="line">@SpringBootConfiguration</span><br><span class="line">@EnableAutoConfiguration</span><br><span class="line">@ComponentScan(</span><br><span class="line">    excludeFilters &#x3D; &#123;@Filter(</span><br><span class="line">    type &#x3D; FilterType.CUSTOM,</span><br><span class="line">    classes &#x3D; &#123;TypeExcludeFilter.class&#125;</span><br><span class="line">), @Filter(</span><br><span class="line">    type &#x3D; FilterType.CUSTOM,</span><br><span class="line">    classes &#x3D; &#123;AutoConfigurationExcludeFilter.class&#125;</span><br><span class="line">)&#125;</span><br><span class="line">)</span><br><span class="line">public @interface SpringBootApplication &#123;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中核心是<code>@SpringBootConfiguration</code>、<code>@EnableAutoConfiguration</code>、<code>@ComponentScan</code>，如果将<code>@SpringBootApplication</code> 替换为上面三个注解，项目也可以正常运行，所有<code>@SpringBootApplication</code>是为了书写便利，那上面三个注解的详细功能又是什么？</p>
+<h3 id="SpringBootConfiguration"><a href="#SpringBootConfiguration" class="headerlink" title="@SpringBootConfiguration"></a>@SpringBootConfiguration</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">@Target(ElementType.TYPE)</span><br><span class="line">@Retention(RetentionPolicy.RUNTIME)</span><br><span class="line">@Documented</span><br><span class="line">@Configuration</span><br><span class="line">public @interface SpringBootConfiguration &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>此注解也没有实际功能，只是组合了<code>@Configuration</code>，所以我们继续跟进<code>@Configuration</code>。根据文档，<code>@Configuration</code>是JavaConfig形式的Spring Ioc容器的配置类。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">@Configuration</span><br><span class="line">public class MockConfiguration&#123;</span><br><span class="line">    @Bean</span><br><span class="line">    public MockService mockService()&#123;</span><br><span class="line">        return new MockServiceImpl();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>SpringBoot启动时会扫描此注解，并将标注<code>@Bean</code>的方法注册到Ioc容器。</p>
+<h3 id="ComponentScan"><a href="#ComponentScan" class="headerlink" title="@ComponentScan"></a>@ComponentScan</h3><p><code>@ComponentScan</code>会扫描并加载符合条件的组件，并将这些Bean注册到Ioc容器中。<br>可以通过basePackages属性来控制扫描范围，默认会从声明<code>@ComponentScan</code>所在类的package来进行扫描。所以SpringBoot启动类最好放在root package下。</p>
+<h3 id="EnableAutoConfiguration"><a href="#EnableAutoConfiguration" class="headerlink" title="@EnableAutoConfiguration"></a>@EnableAutoConfiguration</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">@Target(&#123;ElementType.TYPE&#125;)</span><br><span class="line">@Retention(RetentionPolicy.RUNTIME)</span><br><span class="line">@Documented</span><br><span class="line">@Inherited</span><br><span class="line">@AutoConfigurationPackage</span><br><span class="line">@Import(&#123;AutoConfigurationImportSelector.class&#125;)</span><br><span class="line">public @interface EnableAutoConfiguration &#123;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>@EnableAutoConfiguration</code>通过<code>@Import</code>支持，将所有符合自动配置条件的bean定义注册到Ioc容器中。通过代码可以发现其借助了<code>AutoConfigurationImportSelector</code>。<br>主要流程代码：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 读取META-INF&#x2F;spring-autoconfigure-metadata.properties</span><br><span class="line">AutoConfigurationMetadata autoConfigurationMetadata &#x3D; AutoConfigurationMetadataLoader</span><br><span class="line">        .loadMetadata(this.beanClassLoader);</span><br><span class="line">&#x2F;&#x2F; 读取启动类注解属性</span><br><span class="line">AnnotationAttributes attributes &#x3D; getAttributes(annotationMetadata);</span><br><span class="line">&#x2F;&#x2F; 去取META-INF&#x2F;spring.factories key&#x3D;EnableAutoConfiguration 所有工厂类名称</span><br><span class="line">&#x2F;&#x2F; 此过程比较重要，后面会详细说明</span><br><span class="line">List&lt;String&gt; configurations &#x3D; getCandidateConfigurations(annotationMetadata,</span><br><span class="line">        attributes);</span><br><span class="line">&#x2F;&#x2F; 移除重复工厂并排序</span><br><span class="line">configurations &#x3D; removeDuplicates(configurations);</span><br><span class="line">configurations &#x3D; sort(configurations, autoConfigurationMetadata);</span><br><span class="line">&#x2F;&#x2F; 排除指定的工厂</span><br><span class="line">Set&lt;String&gt; exclusions &#x3D; getExclusions(annotationMetadata, attributes);</span><br><span class="line">checkExcludedClasses(configurations, exclusions);</span><br><span class="line">configurations.removeAll(exclusions);</span><br><span class="line">&#x2F;&#x2F; 过滤</span><br><span class="line">configurations &#x3D; filter(configurations, autoConfigurationMetadata);</span><br><span class="line">&#x2F;&#x2F; 发送事件</span><br><span class="line">fireAutoConfigurationImportEvents(configurations, exclusions);</span><br><span class="line">&#x2F;&#x2F; 之后会将这些工厂类实例化并读取相关配置</span><br></pre></td></tr></table></figure></p>
+<h2 id="启动流程"><a href="#启动流程" class="headerlink" title="启动流程"></a>启动流程</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public static ConfigurableApplicationContext run(Class&lt;?&gt; primarySource,</span><br><span class="line">        String... args) &#123;</span><br><span class="line">    return run(new Class&lt;?&gt;[] &#123; primarySource &#125;, args);</span><br><span class="line">&#125;</span><br><span class="line">public static ConfigurableApplicationContext run(Class&lt;?&gt;[] primarySources,</span><br><span class="line">        String[] args) &#123;</span><br><span class="line">    return new SpringApplication(primarySources).run(args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过调用<code>run</code>方法，会先创建一个<code>SpringApplication</code>实例。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">public SpringApplication(Class&lt;?&gt;... primarySources) &#123;</span><br><span class="line">    this(null, primarySources);</span><br><span class="line">&#125;</span><br><span class="line">public SpringApplication(ResourceLoader resourceLoader, Class&lt;?&gt;... primarySources) &#123;</span><br><span class="line">    this.resourceLoader &#x3D; resourceLoader;</span><br><span class="line">    Assert.notNull(primarySources, &quot;PrimarySources must not be null&quot;);</span><br><span class="line">    this.primarySources &#x3D; new LinkedHashSet&lt;&gt;(Arrays.asList(primarySources));</span><br><span class="line">    &#x2F;&#x2F; 判断应用是否为Web应用</span><br><span class="line">    this.webApplicationType &#x3D; deduceWebApplicationType();</span><br><span class="line">    &#x2F;**</span><br><span class="line">     * 通过SpringFactoriesLoader.loadFactoryNames获取META-INF&#x2F;spring.factories下</span><br><span class="line">     * Key为ApplicationContextInitializer所有工厂类的全类名，并通过反射实例化这些类。</span><br><span class="line">     **&#x2F;</span><br><span class="line">    setInitializers((Collection) getSpringFactoriesInstances(</span><br><span class="line">            ApplicationContextInitializer.class));</span><br><span class="line">    &#x2F;&#x2F; 同上的过程加载ApplicationListener实例</span><br><span class="line">    setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));</span><br><span class="line">    &#x2F;&#x2F; 获取启动类全限定类名</span><br><span class="line">    this.mainApplicationClass &#x3D; deduceMainApplicationClass();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br><code>SpringApplication</code>实例创建完成后会调用<code>run</code>方法<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">public ConfigurableApplicationContext run(String... args) &#123;</span><br><span class="line">    StopWatch stopWatch &#x3D; new StopWatch();</span><br><span class="line">    stopWatch.start();</span><br><span class="line">    ConfigurableApplicationContext context &#x3D; null;</span><br><span class="line">    Collection&lt;SpringBootExceptionReporter&gt; exceptionReporters &#x3D; new ArrayList&lt;&gt;();</span><br><span class="line">    configureHeadlessProperty();</span><br><span class="line">    &#x2F;&#x2F; 获取SpringApplicationRunListener集合，过程同上面的SpringApplication实例创建过程中的ApplicationListener相同</span><br><span class="line">    SpringApplicationRunListeners listeners &#x3D; getRunListeners(args);</span><br><span class="line">    &#x2F;&#x2F; 为每个listener分配一个线程，并启动它们</span><br><span class="line">    listeners.starting();</span><br><span class="line">    try &#123;</span><br><span class="line">        &#x2F;&#x2F; 处理启动参数</span><br><span class="line">        ApplicationArguments applicationArguments &#x3D; new DefaultApplicationArguments(</span><br><span class="line">                args);</span><br><span class="line">        &#x2F;&#x2F; 处理环境配置，包括spring.profiles.active</span><br><span class="line">        ConfigurableEnvironment environment &#x3D; prepareEnvironment(listeners,</span><br><span class="line">                applicationArguments);</span><br><span class="line">        &#x2F;&#x2F; 将需要忽略的bean写入环境变量</span><br><span class="line">        configureIgnoreBeanInfo(environment);</span><br><span class="line">        &#x2F;&#x2F; 彩蛋，输出banner，可自定义banner到resources&#x2F;banner.txt</span><br><span class="line">        Banner printedBanner &#x3D; printBanner(environment);</span><br><span class="line">        &#x2F;&#x2F; 根据之前判断的应用类型创建上下文</span><br><span class="line">        context &#x3D; createApplicationContext();</span><br><span class="line">        &#x2F;&#x2F; getSpringFactoriesInstances 又见此方法</span><br><span class="line">        exceptionReporters &#x3D; getSpringFactoriesInstances(</span><br><span class="line">                SpringBootExceptionReporter.class,</span><br><span class="line">                new Class[] &#123; ConfigurableApplicationContext.class &#125;, context);</span><br><span class="line">        &#x2F;&#x2F; 整个容器的创建与启动以及bean的注入功能</span><br><span class="line">        prepareContext(context, environment, listeners, applicationArguments,</span><br><span class="line">                printedBanner);</span><br><span class="line">        &#x2F;&#x2F; 刷新spring容器，spring-boot-starter-*的自动化配置的关键</span><br><span class="line">        refreshContext(context);</span><br><span class="line">        afterRefresh(context, applicationArguments);</span><br><span class="line">        &#x2F;&#x2F; 执行结束，记录执行时间</span><br><span class="line">        stopWatch.stop();</span><br><span class="line">        if (this.logStartupInfo) &#123;</span><br><span class="line">            new StartupInfoLogger(this.mainApplicationClass)</span><br><span class="line">                    .logStarted(getApplicationLog(), stopWatch);</span><br><span class="line">        &#125;</span><br><span class="line">        listeners.started(context);</span><br><span class="line">        callRunners(context, applicationArguments);</span><br><span class="line">    &#125;</span><br><span class="line">    catch (Throwable ex) &#123;</span><br><span class="line">        handleRunFailure(context, listeners, exceptionReporters, ex);</span><br><span class="line">        throw new IllegalStateException(ex);</span><br><span class="line">    &#125;</span><br><span class="line">    listeners.running(context);</span><br><span class="line">    return context;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>至此通过SpringBoot启动的容器已经构造完成。</p>
+
+
+  </article>
+  </script>
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js">
+  </script>
+  <div class="busuanzi center">
+    page PV:&nbsp;<span id="busuanzi_value_page_pv"></span>&nbsp;・&nbsp;
+    site PV:&nbsp;<span id="busuanzi_value_site_pv"></span>&nbsp;・&nbsp;
+    site UV:&nbsp;<span id="busuanzi_value_site_uv"></span>
+  </div>
+
+
+    
+
+
+
+
+
+    </div>
+  </div>
+  <footer class="page-footer"><div class="clearfix"></div>
+<div class="right-foot">
+    <div class="firstrow">
+        <a href="#top" target="_self">
+            <svg class="i-caret-right" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor"
+                stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+                <path d="M10 30 L26 16 10 2 Z"></path>
+            </svg>
+        </a>
+        © Kung's 2018-2020
+    </div>
+    <div class="secondrow">
+        <a target="_blank" rel="noopener" href="https://github.com/gaoryrt/hexo-theme-pln">
+            Theme Pln
+        </a>
+    </div>
+</div>
+<div class="clearfix"></div>
+<div class="sponsor">
+    本网站由
+    <img class="logo" src="/img/upyun.png" />
+    提供云存储服务
+</div>
+</footer>
+  <script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+<script src="/js/search.min.js"></script>
+
+
+<script type="text/javascript">
+
+// disqus scripts
+
+
+// dropdown scripts
+$(".dropdown").click(function(event) {
+  var current = $(this);
+  event.stopPropagation();
+  $(current).children(".dropdown-content")[($(current).children(".dropdown-content").hasClass("open"))?'removeClass':'addClass']("open")
+});
+$(document).click(function(){
+    $(".dropdown-content").removeClass("open");
+})
+
+var path = "/search.xml";
+searchFunc(path, 'local-search-input', 'local-search-result');
+
+</script>
+
+</body>
+</html>
