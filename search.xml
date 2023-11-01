@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search> 
+  
+  
+    
+    <entry>
+      <title>使用 iOS 快捷指令管理 SmartDNS</title>
+      <link href="/2023/11/01/smartdns-admin-ios-shortcut/"/>
+      <url>/2023/11/01/smartdns-admin-ios-shortcut/</url>
+      
+        <content type="html"><![CDATA[<blockquote><p>之前网络布局使用了 SmartDNS 作为 DNS 服务，并承担分流能力。但是 smartDNS 并不提供管理界面，每次添加新的域名都需要手动修改配置文件，十分麻烦。于是我写了一个小服务，并通过 iOS 快捷指令来进行管理。</p></blockquote><h2 id="出发点"><a href="#出发点" class="headerlink" title="出发点"></a>出发点</h2><p>在蹲坑的某天，突然发现有个网站打不开，怀疑域名是被墙了，但如果想把这个域名加入到翻墙列表里，要么修改 smartDNS 的配置，加到 GFWList 里，要么修改 clash 配置，加到 rule 里。但这两个方式都得打开电脑，登录到 gateway 服务器上修改。这种方式实在是太不 geek 了。</p><h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">server-name gateway</span><br><span class="line">bind []:53</span><br><span class="line">cache-size 2048</span><br><span class="line">log-level info</span><br><span class="line">log-file /var/log/smartdns.log</span><br><span class="line">user root</span><br><span class="line"></span><br><span class="line"># include-conf</span><br><span class="line">conf-file accelerated-domains.china.smartdns.conf</span><br><span class="line">conf-file apple.china.smartdns.conf</span><br><span class="line">conf-file google.china.smartdns.conf</span><br><span class="line">conf-file gfw.domain.smartdns.conf</span><br><span class="line"></span><br><span class="line"># domain-set</span><br><span class="line">domain-set -name white -type list -file white.smartdns.conf</span><br><span class="line">nameserver /domain-set:white/china</span><br><span class="line">domain-set -name blacklist -type list -file blacklist.smartdns.conf</span><br><span class="line">nameserver /domain-set:blacklist/GFW</span><br><span class="line">domain-set -name ad -type list -file ad.smartdns.conf</span><br><span class="line">address /domain-set:ad/#</span><br><span class="line"></span><br><span class="line"># upstream</span><br><span class="line">server 127.0.0.1:7853 -group GFW -exclude-default-group</span><br><span class="line">server 8.8.8.8</span><br><span class="line">server-https https://1.1.1.1/dns-query</span><br><span class="line">server 223.5.5.5 -group china -exclude-default-group</span><br><span class="line">server-https https://dns.alidns.com/dns-query -group china -exclude-default-group</span><br></pre></td></tr></table></figure><p>根据 smartDNS 配置，可以看到，smartDNS 的配置文件分为三部分，<code>include-conf</code>、<code>domain-set</code>、<code>upstream</code>。其中<code>include-conf</code>是引入其他配置文件，<code>domain-set</code>是定义域名集合，<code>upstream</code>是定义上游 DNS 服务器。 <code>include-conf</code> 都是使用的共享配置，只需要定期更新就可以了。<br>这样只需要定义<code>upstream</code>和<code>domain-set</code>，就可以很重新生成<code>smartdns.conf</code>，然后重启 smartDNS 服务，就可以实现添加域名的功能了。</p><p>为了实现简单和部署方便，使用<code>golang</code>进行开发，<code>gin</code>暴露 http 接口，<code>gorm</code> + <code>sqlite3</code>存储数据，<code>template</code>输出配置文件，<code>coreos/go-systemd</code>重新加载服务。简单组合一下，一个简单的 smartDNS 的管理服务就完成了。</p><p><img src="/../images/2023-11-01-19-27-36.png" alt="project"></p><h2 id="操作界面"><a href="#操作界面" class="headerlink" title="操作界面"></a>操作界面</h2><p>写完服务接口，突然不像写前端页面，于是就想到了 iOS 快捷指令，可以通过快捷指令来调用接口，实现添加域名的功能。于是就有了下面的操作界面。</p><p><img src="/../images/2023-11-01-19-30-18.png" alt="short cut"></p><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>虽然快捷指令受限与 API 操作不是非常灵活，但是对于简单的操作还是非常方便的。而且可以通过快捷指令来调用接口，实现一些简单的功能，也是非常有意思的。</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> network </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>JDK21 GA</title>
+      <link href="/2023/09/20/jdk21-ga/"/>
+      <url>/2023/09/20/jdk21-ga/</url>
+      
+        <content type="html"><![CDATA[<blockquote><p>饱受期待的 JDK21 终于正式发布了，Virtual Threads 脱离了预览阶段，并发编程里程碑式的时代来临了，期待更多框架的升级。</p></blockquote><h2 id="Features"><a href="#Features" class="headerlink" title="Features"></a>Features</h2><h3 id="JEP-444-Virtual-Threads"><a href="#JEP-444-Virtual-Threads" class="headerlink" title="JEP 444 - Virtual Threads"></a>JEP 444 - Virtual Threads</h3><p>虚拟线程类似于 Golang 中的 goroutine，是用户态的线程，由 JVM 管理，采用 M:N 调度。可以轻易的创建大量虚拟线程，而不需要担心资源的消耗。<br>同时根据 JEP 描述，虚拟线程并不会改变 Java 的基本并发模型，同时保持对<code>java.lang.Thread</code> API 的兼容，可以更小的改动来使用虚拟线程。</p><h3 id="JEP-439-Generational-ZGC"><a href="#JEP-439-Generational-ZGC" class="headerlink" title="JEP 439 - Generational ZGC"></a>JEP 439 - Generational ZGC</h3><p>JDK11 就引入了 ZGC，当时还在公司进行了分享，当时提到 ZGC 并支持分代 GC，现在它来了，ZGC 在 JDK21 中支持分代 GC 了。<br>在实际业务场景中，可预期的会大幅提高 GC 效率，并且不会明显降低吞吐量。因为实际场景中，大部分对象都是<em>朝生夕死</em>的。</p><h3 id="JEP-453-Strucutred-Concurrency-Preview"><a href="#JEP-453-Strucutred-Concurrency-Preview" class="headerlink" title="JEP 453 - Strucutred Concurrency (Preview)"></a>JEP 453 - Strucutred Concurrency (Preview)</h3><p>JDK21 还有一个令人期待的特性，Structured Concurrency，结构化并发。<br>阅读了 JEP 描述，感觉这个特性是也是会对 Java 并发编程带来非常大的变化，让并发逻辑更加可控和安全。</p><blockquote><p>Structured concurrency is an approach to concurrent programming that preserves the natural relationship between tasks and subtasks, which leads to more readable, maintainable, and reliable concurrent code. The term “structured concurrency” was coined by Martin Sústrik and popularized by Nathaniel J. Smith. Ideas from other languages, such as Erlang’s hierarchical supervisors, inform the design of error handling in structured concurrency.</p></blockquote><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Response <span class="title function_">handle</span><span class="params">()</span> <span class="keyword">throws</span> ExecutionException, InterruptedException &#123;</span><br><span class="line">    <span class="keyword">try</span> (<span class="type">var</span> <span class="variable">scope</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StructuredTaskScope</span>.ShutdownOnFailure()) &#123;</span><br><span class="line">        Supplier&lt;String&gt;  user  = scope.fork(() -&gt; findUser());</span><br><span class="line">        Supplier&lt;Integer&gt; order = scope.fork(() -&gt; fetchOrder());</span><br><span class="line"></span><br><span class="line">        scope.join()            <span class="comment">// Join both subtasks</span></span><br><span class="line">             .throwIfFailed();  <span class="comment">// ... and propagate errors</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// Here, both subtasks have succeeded, so compose their results</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Response</span>(user.get(), order.get());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>通过实例代码可以看出，Structured Concurrency 通过 StructuredTaskScope 来管理子任务</p><ul><li>短路错误处理 — 如果 <code>findUser()</code> 或 <code>fetchOrder()</code> 子任务失败，则另一个子任务（如果尚未完成）将被取消。</li><li>取消传播 - 如果运行 <code>handle()</code> 的线程在调用 <code>join()</code> 之前或期间被中断，则当线程退出作用域时，两个子任务都会自动取消。</li><li>清晰性 - 上面的代码有一个清晰的结构：设置子任务，等待它们完成或被取消，然后决定是成功（并处理已经完成的子任务的结果）还是失败（和子任务已经完成，所以没有什么需要清理的）。</li><li>可观察性 - 线程转储清楚地显示任务层次结构，其中运行 <code>findUser()</code> 和 <code>fetchOrder()</code> 的线程显示为范围的子级。</li></ul><p>期待这个特性也可以早日转正。</p><h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><p>JDK21 为并发编程提供了更强有力的支持，可以让并发编程变的更加简单，其他团队可以早日脱离 JDK7(真的是老古董了哟)。</p><p>不过好像要学习的东西变得更多了，希望可以在我换工作时面试官的知识库还没有更新，hhh~</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> Java </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>NAT 内网穿透</title>
+      <link href="/2023/09/19/nat-hole-punching/"/>
+      <url>/2023/09/19/nat-hole-punching/</url>
+      
+        <content type="html"><![CDATA[<blockquote><p>上次折腾完家里网络，配置各种应用耍了好久，最近在小伙伴交流时，聊到了内网穿透的问题，因为之前家里一直有公网 IP，而且自己一直也有 VPS，所以一直没有关注这个问题，正好来学习一下，补充补充知识。</p></blockquote><h2 id="NAT-类型"><a href="#NAT-类型" class="headerlink" title="NAT 类型"></a>NAT 类型</h2><p>之前只在家里游戏机上感知到过 NAT 类型，但是没有深入了解过，通过资料查询，终于搞明白了大家常说的 NAT3、NAT4 是什么意思。<br>基础概念及 NAT 为什么会出现就不再继续赘述了，只记录下 NAT 类型的划分。<br>NAT 大类分为：锥形和对称型。划分根本就是源 IP:PORT 不变的情况下，NAT 转换后的 PORT 是否固定。固定既为锥形，不固定既为对称型。</p><h3 id="锥形-NAT"><a href="#锥形-NAT" class="headerlink" title="锥形 NAT"></a>锥形 NAT</h3><p>锥形 NAT 又分位：完全锥形（Full cone NAT）、受限锥形（Restricted cone NAT）、端口受限锥形（Port restricted cone NAT）。<br>我的理解是这些划分更像是防火墙安全级别限制，受限锥形和端口受限锥形都是在接受报文时检查源 IP:PORT 是否曾被内网机器请求过对应的 IP 或 IP+PORT，如果不在则丢弃报文，完全锥形则不检查，直接转发报文。<br><img src="/../images/2023-09-19-20-10-35.png" alt="示例图"></p><h3 id="对称型-NAT-Symmetric-NAT"><a href="#对称型-NAT-Symmetric-NAT" class="headerlink" title="对称型 NAT (Symmetric NAT)"></a>对称型 NAT (Symmetric NAT)</h3><p>对称 NAT，会同时根据内网设备出方向报文的源 IP、源端口号、目的 IP、目的端口号四个信息来建立 NAT 表项。如果报文的目的 IP、目的端口号发生了变化，映射到的外部端口号也会发生改变。</p><h3 id="打洞"><a href="#打洞" class="headerlink" title="打洞"></a>打洞</h3><p>根据上面分类，可以看出，对称型 NAT 是不容易进行内网穿透的，但端口是有限的（65535），所以当只有一端是对称型 NAT 时，可以通过打洞的方式进行内网穿透。<br>下面参考 tailscale 文章，介绍下在对称型 NAT 下的打洞方式。<a href="https://tailscale.com/blog/how-nat-traversal-works/">how-nat-traversal-works</a></p><p>在生日悖论的基础上，可以通过端口猜测的方式，来进行打洞。</p><table><thead><tr><th>Number of random probes</th><th>Chance of success</th></tr></thead><tbody><tr><td>174</td><td>50%</td></tr><tr><td>256</td><td>64%</td></tr><tr><td>1024</td><td>98%</td></tr><tr><td>2048</td><td>99.9%</td></tr></tbody></table><p>如图，单边 1024 次探测，可以达到 98% 的成功率，如果双边同时探测 256 次 也可以达到相同的成功率。所以在单侧对称型 NAT 的情况下，还是非常有可能打通的。<br>但如果双端都是对称型 NAT，成功率会骤降（一侧 256 次，一侧 2048 次，20 秒成功率也只有 0.01%）。</p><h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><p>一通学习之后，为什么不自己来实现一个 NAT 穿透工具呢，帮自己来一个不需要借助三方服务器就可以进行文件传输的小工具。于是就有了这个项目：<a href="https://github.com/qingchoulove/tunnel">tunnel</a>。<br>已经初步实现了公司和家里的内网穿透，但只能简单通过 UDP 实现简单数据传输，下一步准备上层使用 QUIC 协议，方便应用层的开发。</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> network </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>iOS17 和 iPhone 15</title>
+      <link href="/2023/09/15/ios17-and-iphone15/"/>
+      <url>/2023/09/15/ios17-and-iphone15/</url>
+      
+        <content type="html"><![CDATA[<blockquote><p>新的 iPhone 开始接受预订了，虽然大家同发布会开始就在吐槽，但还是开售没一会就预计发货 1 个月了。算算手里 iPhone12 也用了 3 年了，电池也开始一天 2 冲都不够了。虽然决定要换，但感觉缺少了当年的那种冲动。</p></blockquote><h2 id="iPhone"><a href="#iPhone" class="headerlink" title="iPhone"></a>iPhone</h2><p>记得第一部 iPhone 是 iPhone5，大一寒假的时候，老爸喝多了说要给我换手机，当时心水的是魅族 MX2，可惜我们俩去店里之后发现没有货，老爸就直接把钱拍给我说让我回学校自己买。本来是在论坛上看怎么 MX2 的玩机攻略，然后就被种草了 iPhone5，迫于钱不够，只能买日版有锁的机器。后面还学习了怎么破解 SIM 卡，使用联通 3G，印象非常深刻，因为破解只能是老版 SIM 卡，某个下午，做公交跨越半个城市在一家小店里买到了一张老版 SIM 卡，破解成功后，就可以用 3G 上网了。当前确实是满怀热情的折腾，越狱，安装各种插件。<br>后面就是 iOS 迭代缓慢，越狱也越来越困难，没了折腾的意义，Android 手机开始百花齐放，更高的充电，更好的摄像，高度开放的系统，更多的折腾空间，让我开始了 Android 之旅。从小米 MIX2 到三星 S10。中间还买过一个微软的 Lumia 950，但是系统太封闭，没有生态，用了几天就放弃了。<br>然后就是安卓也越来越不好折腾，隐私问题越来越严重，就又换会了 iPhone，当时也是非常激动，为了能赶在出去玩之前拿到还花了 200 找了黄牛买了门店自提。关于下一部就决定还是 iPhone 了，越来越不想折腾，也越来越被苹果的生态绑定，或许是过了折腾的年纪，但还是很庆幸，当年的自己，能够折腾，能够不断的尝试。</p><h2 id="iOS"><a href="#iOS" class="headerlink" title="iOS"></a>iOS</h2><p>相比 iPhone15，iOS17 真的是让人最想吐槽的，好歹 iPhone15 还更新了 type-C<br>，出门可以 macbook、iPad 和 iPhone 共用一根线了，但 iOS 可以说是毫无更新，从第一次开发预览就更新，唯一有感知的就是 stand by 功能，只在更新当天给同事演示了一下。名片功能在国内完全没有使用场景，不说有多少人会有 iPhone 分享名片，就还有多少人还打电话了！iMessage 现在也没什么人用了，iCloud+国内也是很多功能不开放，不知是改吐槽苹果不顾国情还是中国网络越来越封闭。</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> 琐事 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>更新联通千兆</title>
+      <link href="/2023/06/05/cu-1000m/"/>
+      <url>/2023/06/05/cu-1000m/</url>
+      
+        <content type="html"><![CDATA[<blockquote><p>上周收到联通推广电话，每月加 39 元升级联通千兆，抱着尝试心态选了升级，预约周六升级光猫。师傅来了之后发现新的光猫是 EPON 的，本来还庆幸之前猫棒是 XPON 的，正好能支持。然后悲催的发现猫棒模块能注册，但是不能拨号，周六搞了好久，无奈暂时还是得用光猫然后选择桥接路由拨号。记录下失败的折腾之旅。</p></blockquote><h2 id="新的光猫"><a href="#新的光猫" class="headerlink" title="新的光猫"></a>新的光猫</h2><p>新的光猫是九洲贴牌的华为 HN8346X6-C，支持 10GEPON。不过看后面接口还都是 1G 的网口，约等于升级了个寂寞，物理限制绝对跑不满千兆速率。<br>首先在网络上研究了下这个光猫怎么拿超级管理员，嗯，结果发现北京联通现在真的是学聪明了，压根就没有超管账号。这他喵的。<br>不管如何先根据教程使用华为 ONT 使能设备开下 telnet 吧，看能不能找到什么有用的信息。<br><img src="/../images/2023-06-05-15-47-33.png" alt="ont"><br>telnet 登录之后发现也是各种阉割，现在网上也没有 R22 版本的 shell 补全包。<br><img src="/../images/2023-06-05-16-03-04.png" alt="telnet"></p><h2 id="猫棒"><a href="#猫棒" class="headerlink" title="猫棒"></a>猫棒</h2><p>好在最终确认了下这边联通是通过 mac 认证的，所以还是有替换猫棒的希望的，根据教程修改猫棒 mac 地址，检查注册状态。<br><img src="/../images/2023-06-05-16-07-24.png" alt="status"><br>到这一步还是很完美，回到路由器尝试拨号，怎么都拨号不成功。<br><img src="/../images/2023-06-05-16-09-25.png" alt="pppoe"></p><h2 id="结束"><a href="#结束" class="headerlink" title="结束"></a>结束</h2><p>黔驴技穷了，暂时就把光猫接着走桥接上网吧，这个垃圾光猫桥接又掉速，感觉这次升级真的是花钱买了个教训，完全没有任何体验。</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> network </tag>
+            
+            <tag> 琐事 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>QNAP TS262C</title>
+      <link href="/2023/05/20/qnap-nas/"/>
+      <url>/2023/05/20/qnap-nas/</url>
+      
+        <content type="html"><![CDATA[<blockquote><p>没想到打脸来的这么快，前几个月刚刚升级家用设备，最终选择千兆内网部署。最近就收到一台 QNAP 设备，虽然只有两盘位，但它支持 2.5G 网口，只能看着流口水了。</p></blockquote><h2 id="TS262C"><a href="#TS262C" class="headerlink" title="TS262C"></a>TS262C</h2><p><img src="/../images/2023-06-02-10-54-49.png" alt="TS262C"></p><h3 id="硬件配置"><a href="#硬件配置" class="headerlink" title="硬件配置"></a>硬件配置</h3><ul><li>CPU: Intel Celeron N4505</li><li>内存: 4GB</li><li>网口: 2.5G</li><li>USB: 2x USB 3.2 Gen 2</li><li>硬盘: 双盘位</li><li>其他: HDMI 2.0</li></ul><h3 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h3><ul><li>2.5G 网口，个人感觉算是核心亮点，2.5G 在当下应该是超前半步，但相对就是家用网络支持 2.5G 还是太少，不能充分发挥速度优势，同时 2.5G 网使用也意味着存储不能使用 HDD。</li><li>HDMI 接口，可以直接连接电视，充当影音中心，不需要电视盒子等设备。</li></ul><h3 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h3><ul><li>双盘位，扩展性太差了，如果使用 RAID1，那么只有一块盘的容量，如果使用 RAID0，那么数据安全性就不高了。同时不能通过 SSD + HDD 的方式来达到容量和性能的平衡，毕竟大容量 SSD 价格还是有点高。</li></ul><h2 id="软件体验"><a href="#软件体验" class="headerlink" title="软件体验"></a>软件体验</h2><ul><li>QTS 系统，确实体会到了大家经常吐槽的问题，界面操作不够直观，有些配置入口过深，比如 NFS 共享配置，需要在控制台&gt;权限&gt;共享文件夹里的权限类别里找到。</li><li>容器(Container Station)，不得不说 QNAP 的容器体验确实不错，界面设计也很现代。甚至还支持了 k3s。同时默认创建了 birdge 网络，更方便访问容器。<br><img src="/../images/2023-06-02-11-10-05.png" alt="Container Station"></li></ul><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>主要使用了 NFS 文件共享和 Container Station 容器服务，体验不错。对比之前使用其他系统来看：</p><ul><li>群晖，同为知名 NAS 厂商，群晖在内置 App 上更胜一筹，不过更喜欢 QNAP 的容器服务，群晖容器还是过于简单。</li><li>TrueNAS，现在使用的主力，ZFS 文件系统对于内存占用还是有点大。容器服务在 TrueNAS SCALE 和社区加持下，通过 k3s 能实现非常好的体验。但是，TrueNAS 并不像其他 NAS 厂商那样，提供了一些内置套件支持，所有功能都需要自己去找镜像，然后自己配置，这点体验还是不如群晖和 QNAP 的。</li></ul>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> homelab </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>翻墙方案</title>
+      <link href="/2023/03/02/home-gfw/"/>
+      <url>/2023/03/02/home-gfw/</url>
+      
+        <content type="html"><![CDATA[<blockquote><p>升级完家里路由发现一个坑点，选择设备的时候没有考虑翻墙的问题，之前 OpenWRT 的时候，翻墙非常简单，直接安装一个插件就可以了。但是 ROS 并没有一个简单的翻墙方案。早知应该选一个 X86 的硬路由，方便安装插件。</p></blockquote><h2 id="方案评估"><a href="#方案评估" class="headerlink" title="方案评估"></a>方案评估</h2><p>然后就开始寻找各种解决方案，网上比较多的方案都是旁路由方案。再建一个虚拟机，部署翻墙软件，然后调整网络流向将需要翻墙的请求转发到翻墙软件上。<br>转发方案有几种：</p><ol><li>将需要翻墙的设备的网关设置为虚拟机的 IP，然后在虚拟机中设置默认路由为真实路由器的 IP。</li><li>配置 ROS dhcp options，通过 dhcp 将需要翻墙的设备的网关设置为虚拟机的 IP。</li><li>配置路由表，将需要翻墙的目的 IP 转发到虚拟机。</li></ol><p>方案一需要手动配置翻墙设备，如果翻墙故障时还得手动修改回默认网关才能正常上网，适合只有少量设备翻墙。</p><p>方案二只需要在 ROS 进行配置，但修改配置时需要清除 dhcp 缓存，并重新连接网络才能生效，翻墙时只需要一次配置，但故障时需要一条条修改，比较麻烦。</p><p>方案三路由表配置，ROS 配置比较烦琐，作为业余网工实在是能力有限，同时对路由器性能要求较高。</p><h2 id="最终方案"><a href="#最终方案" class="headerlink" title="最终方案"></a>最终方案</h2><ul><li>选用 clash 作为翻墙方案，并部署为 tun 模式，所有流量都被虚拟网卡接管。</li><li>smart-dns 作为 dns 方案，被墙域名和黑名单域名使用 clash 作为上游，并配置为 fake-ip 模式，所有被墙域名都会被解析为 fake-ip。</li><li>使用 bird 运行 ospf 协议，将被墙 ip 和 fake-ip 进行路由通告，指定下一跳为 clash 的虚拟网卡。</li><li>ROS dns 设置为 smart-dns 的 IP，所有 dns 请求都会被 smart-dns 接管，同时配置网络检测，当 smart-dns 不可用时，使用默认 dns。</li></ul><p>这套方案虽然看起来比较复杂，但是优点就是不需要设备手动设置网管，也不需要在 ROS 配置 ip set、路由规则等。ospf 协议会自动通告，效率比较高。同时当 clash、ospf 机器不可用时，通告路由会自动失效，不会影响正常上网。配置的 dns 服务也可以很好的更新被墙域名列表，还支持广告域名屏蔽。<br>如果代理服务器流量充足，可以考虑 ospf 通告所有境外 ip，代理更好的访问体验。因为我的小机流量比较少，所有只通告了被墙的 ip。</p><h2 id="网络拓扑"><a href="#网络拓扑" class="headerlink" title="网络拓扑"></a>网络拓扑</h2><p><img src="/../images/2023-05-12-17-21-58.png" alt="访问被墙网站"></p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> network </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>家庭网络升级</title>
+      <link href="/2023/02/23/pon-stick/"/>
+      <url>/2023/02/23/pon-stick/</url>
+      
+        <content type="html"><![CDATA[<blockquote><p>某天在网上冲浪的时候发现了猫棒（pon stick）这种神奇的设备。再看看家里联通送的光猫，既非常占地方，还只有一个千兆口，下面还要再挂一级交换机，实在是太丑了。于是乎，我决定把家里的网络升级一下。</p></blockquote><h2 id="现有网络拓扑"><a href="#现有网络拓扑" class="headerlink" title="现有网络拓扑"></a>现有网络拓扑</h2><p><img src="/../images/2023-05-12-17-02-11.png" alt="现有网络拓扑"><br>现在家里光纤入户后接入运营商光猫，后面接入 NAS LAN1，接入 NAS 中虚拟的软路由，然后通过 LAN2 接回交换机，后面再接入 PC、电视盒子、AP 等设备。<br>主打就是 All in One，All in Boom。因为软路由、TrueNas 以及平时写代码的虚拟机都是在 esxi 上，平时调整 esxi 配置都需要全家断网，非常影响女朋友追剧。<br>正好家里这台主机只有一个 PCI 还被我插了解码用的显卡，所以就想着把软路由单独拿出来，主机作为专职 NAS 使用，方便折腾。</p><h2 id="设备选择"><a href="#设备选择" class="headerlink" title="设备选择"></a>设备选择</h2><p>确定所有需求之后就开始选定设备，首先是猫棒，在确认家里光猫是 GPON 之后，综合家里现有设备都是千兆网口，升级 2.5G 或 10G 成本都太高，最终选了 ODI 2.5G 的猫棒，价格也比较亲民。</p><blockquote><p>虽然很多人吐槽发热比较严重，但我还是头铁选择了这个，毕竟价格低啊。</p></blockquote><p>然后就开始根据兼容列表选择路由，综合钱包最终在海鲜上选择了 RB760iGS，这个路由器有 5 个千兆网口，1 个 SFP 口。完全符合使用诉求。</p><h2 id="网络配置"><a href="#网络配置" class="headerlink" title="网络配置"></a>网络配置</h2><p>设备到手就是一通配置，首先将原有光猫认证配置到猫棒上，检查是否通过认证。<br><img src="/../images/2023-06-02-10-42-40.png" alt="猫棒配置"><br>然后是配置 ROS，根据网上的教程，将 SFP 配置为 WAN，然后配置拨号，顺利联网。顺道赞下我们这联通，还有免费的公网可以用。<br><img src="/../images/2023-06-02-10-39-48.png" alt="ROS配置"><br>设备合影<br><img src="/../images/2023-06-02-10-38-19.png" alt="设备合影"></p><h2 id="新的网络拓扑"><a href="#新的网络拓扑" class="headerlink" title="新的网络拓扑"></a>新的网络拓扑</h2><p><img src="/../images/2023-05-12-17-07-26.png" alt="新的网络拓扑"></p><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul><li>猫棒温度确实挺高，但暂时没有遇到网络不可用或者降速的问题。</li><li>暂时只配置了 IPV4，还没搞明白 IPV6 怎么配置。</li><li>最大问题是翻墙不可用了，还得再研究下应该怎么在 ROS 上处理翻墙。</li></ul><p>总结就是，猫棒还是个挺好的方案，但如果家里地方够大，其实不如直接买个更好的光猫。ROS 一点都不易用，还是 OpenWRT 更合适折腾。</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> network </tag>
+            
+            <tag> homelab </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>新blog再次出发</title>
+      <link href="/2023/02/17/new-blog/"/>
+      <url>/2023/02/17/new-blog/</url>
+      
+        <content type="html"><![CDATA[<blockquote><p>新的blog再一次出现了。</p></blockquote><h2 id="随记"><a href="#随记" class="headerlink" title="随记"></a>随记</h2><p>都说程序员一直在选好看的blog主题，优秀的blog自动发布技术，但blog内容确实从来不更新。距离上次搭blog已经两年了，突然兴起，让我在此出发，希望这次可以坚持的更久一点。</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> 琐事 </tag>
+            
+            <tag> 感想 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+  
+  
+</search>

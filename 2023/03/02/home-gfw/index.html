@@ -1,0 +1,201 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="google-site-verification" content="" />
+  <meta name="referrer" content="unsafe-url">
+  
+  <title>翻墙方案</title>
+  <meta name="author" content="Kung">
+  <meta name="description" content="升级完家里路由发现一个坑点，选择设备的时候没有考虑翻墙的问题，之前 OpenWRT 的时候，翻墙非常简单，直接安装一个插件就可以了。但是 ROS 并没有一个简单的翻墙方案。早知应该选一个 X86 的硬路由，方便安装插件。
+
+方案评估然后就开始寻找各种解决方案，网上比较多的方案都是旁路由方案。再建一个">
+  
+  
+  <meta property="og:title" content="翻墙方案"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:site_name" content="Kung&#39;s"/>
+  <link href="/apple-touch-icon-precomposed.png" sizes="180x180" rel="apple-touch-icon-precomposed">
+  <link rel="alternate" href="/atom.xml" title="Kung&#39;s" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/m.min.css">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+<body>
+  <a id="top"></a>
+  <div id="main">
+    <div class="main-ctnr">
+      <div class="behind">
+  <a href="/" class="back black-color">
+    <svg class="i-close" viewBox="0 0 32 32" width="22" height="22" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+        <path d="M2 30 L30 2 M30 30 L2 2"></path>
+    </svg>
+  </a>
+  
+    <div class="description">
+      &nbsp;银鞍照白马, 飒沓如流星
+    </div>
+    
+</div>
+
+
+  <article class="standard post">
+    <div class="title">
+      
+  
+    <h1 class="page-title center">
+        翻墙方案
+    </h1>
+  
+
+
+    </div>
+    <div class="meta center">
+      <time datetime="2023-03-02T08:12:22.000Z" itemprop="datePublished">
+  <svg class="i-calendar" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+    <path d="M2 6 L2 30 30 30 30 6 Z M2 15 L30 15 M7 3 L7 9 M13 3 L13 9 M19 3 L19 9 M25 3 L25 9"></path>
+  </svg>
+  &nbsp;
+  2023-03-02
+</time>
+
+
+
+
+
+    
+    &nbsp;
+    <svg class="i-tag" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+      <circle cx="24" cy="8" r="2"></circle>
+      <path d="M2 18 L18 2 30 2 30 14 14 30 Z"></path>
+    </svg>
+    &nbsp;
+    <a href="/tags/network/">network</a>
+
+
+    </div>
+    <hr>
+    
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E8%AF%84%E4%BC%B0"><span class="toc-text">方案评估</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E7%BB%88%E6%96%B9%E6%A1%88"><span class="toc-text">最终方案</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BD%91%E7%BB%9C%E6%8B%93%E6%89%91"><span class="toc-text">网络拓扑</span></a></li></ol>
+    
+    <div class="picture-container">
+      
+    </div>
+    <blockquote>
+<p>升级完家里路由发现一个坑点，选择设备的时候没有考虑翻墙的问题，之前 OpenWRT 的时候，翻墙非常简单，直接安装一个插件就可以了。但是 ROS 并没有一个简单的翻墙方案。早知应该选一个 X86 的硬路由，方便安装插件。</p>
+</blockquote>
+<h2 id="方案评估"><a href="#方案评估" class="headerlink" title="方案评估"></a>方案评估</h2><p>然后就开始寻找各种解决方案，网上比较多的方案都是旁路由方案。再建一个虚拟机，部署翻墙软件，然后调整网络流向将需要翻墙的请求转发到翻墙软件上。<br>转发方案有几种：</p>
+<ol>
+<li>将需要翻墙的设备的网关设置为虚拟机的 IP，然后在虚拟机中设置默认路由为真实路由器的 IP。</li>
+<li>配置 ROS dhcp options，通过 dhcp 将需要翻墙的设备的网关设置为虚拟机的 IP。</li>
+<li>配置路由表，将需要翻墙的目的 IP 转发到虚拟机。</li>
+</ol>
+<p>方案一需要手动配置翻墙设备，如果翻墙故障时还得手动修改回默认网关才能正常上网，适合只有少量设备翻墙。</p>
+<p>方案二只需要在 ROS 进行配置，但修改配置时需要清除 dhcp 缓存，并重新连接网络才能生效，翻墙时只需要一次配置，但故障时需要一条条修改，比较麻烦。</p>
+<p>方案三路由表配置，ROS 配置比较烦琐，作为业余网工实在是能力有限，同时对路由器性能要求较高。</p>
+<h2 id="最终方案"><a href="#最终方案" class="headerlink" title="最终方案"></a>最终方案</h2><ul>
+<li>选用 clash 作为翻墙方案，并部署为 tun 模式，所有流量都被虚拟网卡接管。</li>
+<li>smart-dns 作为 dns 方案，被墙域名和黑名单域名使用 clash 作为上游，并配置为 fake-ip 模式，所有被墙域名都会被解析为 fake-ip。</li>
+<li>使用 bird 运行 ospf 协议，将被墙 ip 和 fake-ip 进行路由通告，指定下一跳为 clash 的虚拟网卡。</li>
+<li>ROS dns 设置为 smart-dns 的 IP，所有 dns 请求都会被 smart-dns 接管，同时配置网络检测，当 smart-dns 不可用时，使用默认 dns。</li>
+</ul>
+<p>这套方案虽然看起来比较复杂，但是优点就是不需要设备手动设置网管，也不需要在 ROS 配置 ip set、路由规则等。ospf 协议会自动通告，效率比较高。同时当 clash、ospf 机器不可用时，通告路由会自动失效，不会影响正常上网。配置的 dns 服务也可以很好的更新被墙域名列表，还支持广告域名屏蔽。<br>如果代理服务器流量充足，可以考虑 ospf 通告所有境外 ip，代理更好的访问体验。因为我的小机流量比较少，所有只通告了被墙的 ip。</p>
+<h2 id="网络拓扑"><a href="#网络拓扑" class="headerlink" title="网络拓扑"></a>网络拓扑</h2><p><img src="/../images/2023-05-12-17-21-58.png" alt="访问被墙网站"></p>
+
+
+  </article>
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <div class="busuanzi center">
+    page PV:&nbsp;<span id="busuanzi_value_page_pv"></span>&nbsp;・&nbsp;
+    site PV:&nbsp;<span id="busuanzi_value_site_pv"></span>&nbsp;・&nbsp;
+    site UV:&nbsp;<span id="busuanzi_value_site_uv"></span>
+  </div>
+
+
+    
+
+
+
+
+
+    </div>
+  </div>
+  <footer class="page-footer"><div class="clearfix">
+</div>
+<div class="right-foot">
+    <div class="firstrow">
+        <a href="#top" target="_self">
+        <svg class="i-caret-right" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+            <path d="M10 30 L26 16 10 2 Z"></path>
+        </svg>
+        </a>
+        © Kung's 2023
+    </div>
+    <div class="secondrow">
+        <a target="_blank" rel="noopener" href="https://github.com/gaoryrt/hexo-theme-pln">
+        Theme Pln
+        </a>
+    </div>
+</div>
+<div class="clearfix">
+</div>
+</footer>
+  <script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+<script src="/js/search.min.js"></script>
+<script type="text/javascript">
+
+// disqus scripts
+
+
+// dropdown scripts
+function $(s) {
+    return document.querySelector(s)
+  }
+
+  function $$(s) {
+    return document.querySelectorAll(s)
+  }
+  var dropDownElArr = $$('.dropdown')
+  for (var i = 0; i < dropDownElArr.length; i += 1) {
+    dropDownElArr[i].addEventListener('click', function(event) {
+      var content = this.querySelector('.dropdown-content')
+      event.stopPropagation()
+      if (content.className.indexOf('open') < 0) {
+        content.classList.add('open')
+      } else {
+        content.classList.remove('open')
+      }
+    })
+  }
+  document.body.addEventListener('click', function() {
+    var dropDownContentElArr = $$('.dropdown-content')
+    for (var i = 0; i < dropDownContentElArr.length; i += 1) {
+      dropDownContentElArr[i].classList.remove('open')
+    }
+  })
+
+  // smooth scroll
+  $$('a[href^="#"]').forEach(e=>{
+    e.addEventListener("click", function(e) {
+      e.preventDefault();
+      var t = this.getAttribute("href").substr(1);
+      $(`[id='${decodeURIComponent(t)}']`).scrollIntoView({
+        behavior: "smooth"
+      }),
+      t === "top" ? history.replaceState(null, null, " ") : history.pushState(null, null, `#${t}`)
+    })
+  })
+
+// search
+var path = "/search.xml";
+searchFunc(path, 'local-search-input', 'local-search-result');
+
+</script>
+
+</body>
+</html>

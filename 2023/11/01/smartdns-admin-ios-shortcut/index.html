@@ -1,0 +1,193 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="google-site-verification" content="" />
+  <meta name="referrer" content="unsafe-url">
+  
+  <title>使用 iOS 快捷指令管理 SmartDNS</title>
+  <meta name="author" content="Kung">
+  <meta name="description" content="之前网络布局使用了 SmartDNS 作为 DNS 服务，并承担分流能力。但是 smartDNS 并不提供管理界面，每次添加新的域名都需要手动修改配置文件，十分麻烦。于是我写了一个小服务，并通过 iOS 快捷指令来进行管理。
+
+出发点在蹲坑的某天，突然发现有个网站打不开，怀疑域名是被墙了，但如果想把">
+  
+  
+  <meta property="og:title" content="使用 iOS 快捷指令管理 SmartDNS"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:site_name" content="Kung&#39;s"/>
+  <link href="/apple-touch-icon-precomposed.png" sizes="180x180" rel="apple-touch-icon-precomposed">
+  <link rel="alternate" href="/atom.xml" title="Kung&#39;s" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/m.min.css">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+<body>
+  <a id="top"></a>
+  <div id="main">
+    <div class="main-ctnr">
+      <div class="behind">
+  <a href="/" class="back black-color">
+    <svg class="i-close" viewBox="0 0 32 32" width="22" height="22" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+        <path d="M2 30 L30 2 M30 30 L2 2"></path>
+    </svg>
+  </a>
+  
+    <div class="description">
+      &nbsp;银鞍照白马, 飒沓如流星
+    </div>
+    
+</div>
+
+
+  <article class="standard post">
+    <div class="title">
+      
+  
+    <h1 class="page-title center">
+        使用 iOS 快捷指令管理 SmartDNS
+    </h1>
+  
+
+
+    </div>
+    <div class="meta center">
+      <time datetime="2023-11-01T11:16:23.000Z" itemprop="datePublished">
+  <svg class="i-calendar" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+    <path d="M2 6 L2 30 30 30 30 6 Z M2 15 L30 15 M7 3 L7 9 M13 3 L13 9 M19 3 L19 9 M25 3 L25 9"></path>
+  </svg>
+  &nbsp;
+  2023-11-01
+</time>
+
+
+
+
+
+    
+    &nbsp;
+    <svg class="i-tag" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+      <circle cx="24" cy="8" r="2"></circle>
+      <path d="M2 18 L18 2 30 2 30 14 14 30 Z"></path>
+    </svg>
+    &nbsp;
+    <a href="/tags/network/">network</a>
+
+
+    </div>
+    <hr>
+    
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%BA%E5%8F%91%E7%82%B9"><span class="toc-text">出发点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-text">解决方案</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%93%8D%E4%BD%9C%E7%95%8C%E9%9D%A2"><span class="toc-text">操作界面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li></ol>
+    
+    <div class="picture-container">
+      
+    </div>
+    <blockquote>
+<p>之前网络布局使用了 SmartDNS 作为 DNS 服务，并承担分流能力。但是 smartDNS 并不提供管理界面，每次添加新的域名都需要手动修改配置文件，十分麻烦。于是我写了一个小服务，并通过 iOS 快捷指令来进行管理。</p>
+</blockquote>
+<h2 id="出发点"><a href="#出发点" class="headerlink" title="出发点"></a>出发点</h2><p>在蹲坑的某天，突然发现有个网站打不开，怀疑域名是被墙了，但如果想把这个域名加入到翻墙列表里，要么修改 smartDNS 的配置，加到 GFWList 里，要么修改 clash 配置，加到 rule 里。但这两个方式都得打开电脑，登录到 gateway 服务器上修改。这种方式实在是太不 geek 了。</p>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">server-name gateway</span><br><span class="line">bind []:53</span><br><span class="line">cache-size 2048</span><br><span class="line">log-level info</span><br><span class="line">log-file /var/log/smartdns.log</span><br><span class="line">user root</span><br><span class="line"></span><br><span class="line"># include-conf</span><br><span class="line">conf-file accelerated-domains.china.smartdns.conf</span><br><span class="line">conf-file apple.china.smartdns.conf</span><br><span class="line">conf-file google.china.smartdns.conf</span><br><span class="line">conf-file gfw.domain.smartdns.conf</span><br><span class="line"></span><br><span class="line"># domain-set</span><br><span class="line">domain-set -name white -type list -file white.smartdns.conf</span><br><span class="line">nameserver /domain-set:white/china</span><br><span class="line">domain-set -name blacklist -type list -file blacklist.smartdns.conf</span><br><span class="line">nameserver /domain-set:blacklist/GFW</span><br><span class="line">domain-set -name ad -type list -file ad.smartdns.conf</span><br><span class="line">address /domain-set:ad/#</span><br><span class="line"></span><br><span class="line"># upstream</span><br><span class="line">server 127.0.0.1:7853 -group GFW -exclude-default-group</span><br><span class="line">server 8.8.8.8</span><br><span class="line">server-https https://1.1.1.1/dns-query</span><br><span class="line">server 223.5.5.5 -group china -exclude-default-group</span><br><span class="line">server-https https://dns.alidns.com/dns-query -group china -exclude-default-group</span><br></pre></td></tr></table></figure>
+
+<p>根据 smartDNS 配置，可以看到，smartDNS 的配置文件分为三部分，<code>include-conf</code>、<code>domain-set</code>、<code>upstream</code>。其中<code>include-conf</code>是引入其他配置文件，<code>domain-set</code>是定义域名集合，<code>upstream</code>是定义上游 DNS 服务器。 <code>include-conf</code> 都是使用的共享配置，只需要定期更新就可以了。<br>这样只需要定义<code>upstream</code>和<code>domain-set</code>，就可以很重新生成<code>smartdns.conf</code>，然后重启 smartDNS 服务，就可以实现添加域名的功能了。</p>
+<p>为了实现简单和部署方便，使用<code>golang</code>进行开发，<code>gin</code>暴露 http 接口，<code>gorm</code> + <code>sqlite3</code>存储数据，<code>template</code>输出配置文件，<code>coreos/go-systemd</code>重新加载服务。简单组合一下，一个简单的 smartDNS 的管理服务就完成了。</p>
+<p><img src="/../images/2023-11-01-19-27-36.png" alt="project"></p>
+<h2 id="操作界面"><a href="#操作界面" class="headerlink" title="操作界面"></a>操作界面</h2><p>写完服务接口，突然不像写前端页面，于是就想到了 iOS 快捷指令，可以通过快捷指令来调用接口，实现添加域名的功能。于是就有了下面的操作界面。</p>
+<p><img src="/../images/2023-11-01-19-30-18.png" alt="short cut"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>虽然快捷指令受限与 API 操作不是非常灵活，但是对于简单的操作还是非常方便的。而且可以通过快捷指令来调用接口，实现一些简单的功能，也是非常有意思的。</p>
+
+
+  </article>
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <div class="busuanzi center">
+    page PV:&nbsp;<span id="busuanzi_value_page_pv"></span>&nbsp;・&nbsp;
+    site PV:&nbsp;<span id="busuanzi_value_site_pv"></span>&nbsp;・&nbsp;
+    site UV:&nbsp;<span id="busuanzi_value_site_uv"></span>
+  </div>
+
+
+    
+
+
+
+
+
+    </div>
+  </div>
+  <footer class="page-footer"><div class="clearfix">
+</div>
+<div class="right-foot">
+    <div class="firstrow">
+        <a href="#top" target="_self">
+        <svg class="i-caret-right" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+            <path d="M10 30 L26 16 10 2 Z"></path>
+        </svg>
+        </a>
+        © Kung's 2023
+    </div>
+    <div class="secondrow">
+        <a target="_blank" rel="noopener" href="https://github.com/gaoryrt/hexo-theme-pln">
+        Theme Pln
+        </a>
+    </div>
+</div>
+<div class="clearfix">
+</div>
+</footer>
+  <script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+<script src="/js/search.min.js"></script>
+<script type="text/javascript">
+
+// disqus scripts
+
+
+// dropdown scripts
+function $(s) {
+    return document.querySelector(s)
+  }
+
+  function $$(s) {
+    return document.querySelectorAll(s)
+  }
+  var dropDownElArr = $$('.dropdown')
+  for (var i = 0; i < dropDownElArr.length; i += 1) {
+    dropDownElArr[i].addEventListener('click', function(event) {
+      var content = this.querySelector('.dropdown-content')
+      event.stopPropagation()
+      if (content.className.indexOf('open') < 0) {
+        content.classList.add('open')
+      } else {
+        content.classList.remove('open')
+      }
+    })
+  }
+  document.body.addEventListener('click', function() {
+    var dropDownContentElArr = $$('.dropdown-content')
+    for (var i = 0; i < dropDownContentElArr.length; i += 1) {
+      dropDownContentElArr[i].classList.remove('open')
+    }
+  })
+
+  // smooth scroll
+  $$('a[href^="#"]').forEach(e=>{
+    e.addEventListener("click", function(e) {
+      e.preventDefault();
+      var t = this.getAttribute("href").substr(1);
+      $(`[id='${decodeURIComponent(t)}']`).scrollIntoView({
+        behavior: "smooth"
+      }),
+      t === "top" ? history.replaceState(null, null, " ") : history.pushState(null, null, `#${t}`)
+    })
+  })
+
+// search
+var path = "/search.xml";
+searchFunc(path, 'local-search-input', 'local-search-result');
+
+</script>
+
+</body>
+</html>

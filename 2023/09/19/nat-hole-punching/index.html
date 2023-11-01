@@ -1,0 +1,215 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="google-site-verification" content="" />
+  <meta name="referrer" content="unsafe-url">
+  
+  <title>NAT 内网穿透</title>
+  <meta name="author" content="Kung">
+  <meta name="description" content="上次折腾完家里网络，配置各种应用耍了好久，最近在小伙伴交流时，聊到了内网穿透的问题，因为之前家里一直有公网 IP，而且自己一直也有 VPS，所以一直没有关注这个问题，正好来学习一下，补充补充知识。
+
+NAT 类型之前只在家里游戏机上感知到过 NAT 类型，但是没有深入了解过，通过资料查询，终于搞明白">
+  
+  
+  <meta property="og:title" content="NAT 内网穿透"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:site_name" content="Kung&#39;s"/>
+  <link href="/apple-touch-icon-precomposed.png" sizes="180x180" rel="apple-touch-icon-precomposed">
+  <link rel="alternate" href="/atom.xml" title="Kung&#39;s" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/m.min.css">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+<body>
+  <a id="top"></a>
+  <div id="main">
+    <div class="main-ctnr">
+      <div class="behind">
+  <a href="/" class="back black-color">
+    <svg class="i-close" viewBox="0 0 32 32" width="22" height="22" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+        <path d="M2 30 L30 2 M30 30 L2 2"></path>
+    </svg>
+  </a>
+  
+    <div class="description">
+      &nbsp;银鞍照白马, 飒沓如流星
+    </div>
+    
+</div>
+
+
+  <article class="standard post">
+    <div class="title">
+      
+  
+    <h1 class="page-title center">
+        NAT 内网穿透
+    </h1>
+  
+
+
+    </div>
+    <div class="meta center">
+      <time datetime="2023-09-19T11:56:20.000Z" itemprop="datePublished">
+  <svg class="i-calendar" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+    <path d="M2 6 L2 30 30 30 30 6 Z M2 15 L30 15 M7 3 L7 9 M13 3 L13 9 M19 3 L19 9 M25 3 L25 9"></path>
+  </svg>
+  &nbsp;
+  2023-09-19
+</time>
+
+
+
+
+
+    
+    &nbsp;
+    <svg class="i-tag" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+      <circle cx="24" cy="8" r="2"></circle>
+      <path d="M2 18 L18 2 30 2 30 14 14 30 Z"></path>
+    </svg>
+    &nbsp;
+    <a href="/tags/network/">network</a>
+
+
+    </div>
+    <hr>
+    
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#NAT-%E7%B1%BB%E5%9E%8B"><span class="toc-text">NAT 类型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%94%A5%E5%BD%A2-NAT"><span class="toc-text">锥形 NAT</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%B9%E7%A7%B0%E5%9E%8B-NAT-Symmetric-NAT"><span class="toc-text">对称型 NAT (Symmetric NAT)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%93%E6%B4%9E"><span class="toc-text">打洞</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0"><span class="toc-text">实现</span></a></li></ol>
+    
+    <div class="picture-container">
+      
+    </div>
+    <blockquote>
+<p>上次折腾完家里网络，配置各种应用耍了好久，最近在小伙伴交流时，聊到了内网穿透的问题，因为之前家里一直有公网 IP，而且自己一直也有 VPS，所以一直没有关注这个问题，正好来学习一下，补充补充知识。</p>
+</blockquote>
+<h2 id="NAT-类型"><a href="#NAT-类型" class="headerlink" title="NAT 类型"></a>NAT 类型</h2><p>之前只在家里游戏机上感知到过 NAT 类型，但是没有深入了解过，通过资料查询，终于搞明白了大家常说的 NAT3、NAT4 是什么意思。<br>基础概念及 NAT 为什么会出现就不再继续赘述了，只记录下 NAT 类型的划分。<br>NAT 大类分为：锥形和对称型。划分根本就是源 IP:PORT 不变的情况下，NAT 转换后的 PORT 是否固定。固定既为锥形，不固定既为对称型。</p>
+<h3 id="锥形-NAT"><a href="#锥形-NAT" class="headerlink" title="锥形 NAT"></a>锥形 NAT</h3><p>锥形 NAT 又分位：完全锥形（Full cone NAT）、受限锥形（Restricted cone NAT）、端口受限锥形（Port restricted cone NAT）。<br>我的理解是这些划分更像是防火墙安全级别限制，受限锥形和端口受限锥形都是在接受报文时检查源 IP:PORT 是否曾被内网机器请求过对应的 IP 或 IP+PORT，如果不在则丢弃报文，完全锥形则不检查，直接转发报文。<br><img src="/../images/2023-09-19-20-10-35.png" alt="示例图"></p>
+<h3 id="对称型-NAT-Symmetric-NAT"><a href="#对称型-NAT-Symmetric-NAT" class="headerlink" title="对称型 NAT (Symmetric NAT)"></a>对称型 NAT (Symmetric NAT)</h3><p>对称 NAT，会同时根据内网设备出方向报文的源 IP、源端口号、目的 IP、目的端口号四个信息来建立 NAT 表项。如果报文的目的 IP、目的端口号发生了变化，映射到的外部端口号也会发生改变。</p>
+<h3 id="打洞"><a href="#打洞" class="headerlink" title="打洞"></a>打洞</h3><p>根据上面分类，可以看出，对称型 NAT 是不容易进行内网穿透的，但端口是有限的（65535），所以当只有一端是对称型 NAT 时，可以通过打洞的方式进行内网穿透。<br>下面参考 tailscale 文章，介绍下在对称型 NAT 下的打洞方式。<a target="_blank" rel="noopener" href="https://tailscale.com/blog/how-nat-traversal-works/">how-nat-traversal-works</a></p>
+<p>在生日悖论的基础上，可以通过端口猜测的方式，来进行打洞。</p>
+<table>
+<thead>
+<tr>
+<th>Number of random probes</th>
+<th>Chance of success</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>174</td>
+<td>50%</td>
+</tr>
+<tr>
+<td>256</td>
+<td>64%</td>
+</tr>
+<tr>
+<td>1024</td>
+<td>98%</td>
+</tr>
+<tr>
+<td>2048</td>
+<td>99.9%</td>
+</tr>
+</tbody></table>
+<p>如图，单边 1024 次探测，可以达到 98% 的成功率，如果双边同时探测 256 次 也可以达到相同的成功率。所以在单侧对称型 NAT 的情况下，还是非常有可能打通的。<br>但如果双端都是对称型 NAT，成功率会骤降（一侧 256 次，一侧 2048 次，20 秒成功率也只有 0.01%）。</p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><p>一通学习之后，为什么不自己来实现一个 NAT 穿透工具呢，帮自己来一个不需要借助三方服务器就可以进行文件传输的小工具。于是就有了这个项目：<a target="_blank" rel="noopener" href="https://github.com/qingchoulove/tunnel">tunnel</a>。<br>已经初步实现了公司和家里的内网穿透，但只能简单通过 UDP 实现简单数据传输，下一步准备上层使用 QUIC 协议，方便应用层的开发。</p>
+
+
+  </article>
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <div class="busuanzi center">
+    page PV:&nbsp;<span id="busuanzi_value_page_pv"></span>&nbsp;・&nbsp;
+    site PV:&nbsp;<span id="busuanzi_value_site_pv"></span>&nbsp;・&nbsp;
+    site UV:&nbsp;<span id="busuanzi_value_site_uv"></span>
+  </div>
+
+
+    
+
+
+
+
+
+    </div>
+  </div>
+  <footer class="page-footer"><div class="clearfix">
+</div>
+<div class="right-foot">
+    <div class="firstrow">
+        <a href="#top" target="_self">
+        <svg class="i-caret-right" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+            <path d="M10 30 L26 16 10 2 Z"></path>
+        </svg>
+        </a>
+        © Kung's 2023
+    </div>
+    <div class="secondrow">
+        <a target="_blank" rel="noopener" href="https://github.com/gaoryrt/hexo-theme-pln">
+        Theme Pln
+        </a>
+    </div>
+</div>
+<div class="clearfix">
+</div>
+</footer>
+  <script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+<script src="/js/search.min.js"></script>
+<script type="text/javascript">
+
+// disqus scripts
+
+
+// dropdown scripts
+function $(s) {
+    return document.querySelector(s)
+  }
+
+  function $$(s) {
+    return document.querySelectorAll(s)
+  }
+  var dropDownElArr = $$('.dropdown')
+  for (var i = 0; i < dropDownElArr.length; i += 1) {
+    dropDownElArr[i].addEventListener('click', function(event) {
+      var content = this.querySelector('.dropdown-content')
+      event.stopPropagation()
+      if (content.className.indexOf('open') < 0) {
+        content.classList.add('open')
+      } else {
+        content.classList.remove('open')
+      }
+    })
+  }
+  document.body.addEventListener('click', function() {
+    var dropDownContentElArr = $$('.dropdown-content')
+    for (var i = 0; i < dropDownContentElArr.length; i += 1) {
+      dropDownContentElArr[i].classList.remove('open')
+    }
+  })
+
+  // smooth scroll
+  $$('a[href^="#"]').forEach(e=>{
+    e.addEventListener("click", function(e) {
+      e.preventDefault();
+      var t = this.getAttribute("href").substr(1);
+      $(`[id='${decodeURIComponent(t)}']`).scrollIntoView({
+        behavior: "smooth"
+      }),
+      t === "top" ? history.replaceState(null, null, " ") : history.pushState(null, null, `#${t}`)
+    })
+  })
+
+// search
+var path = "/search.xml";
+searchFunc(path, 'local-search-input', 'local-search-result');
+
+</script>
+
+</body>
+</html>

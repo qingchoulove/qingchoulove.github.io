@@ -1,0 +1,202 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="google-site-verification" content="" />
+  <meta name="referrer" content="unsafe-url">
+  
+  <title>JDK21 GA</title>
+  <meta name="author" content="Kung">
+  <meta name="description" content="饱受期待的 JDK21 终于正式发布了，Virtual Threads 脱离了预览阶段，并发编程里程碑式的时代来临了，期待更多框架的升级。
+
+FeaturesJEP 444 - Virtual Threads虚拟线程类似于 Golang 中的 goroutine，是用户态的线程，由 JVM 管理，采">
+  
+  
+  <meta property="og:title" content="JDK21 GA"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:site_name" content="Kung&#39;s"/>
+  <link href="/apple-touch-icon-precomposed.png" sizes="180x180" rel="apple-touch-icon-precomposed">
+  <link rel="alternate" href="/atom.xml" title="Kung&#39;s" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/m.min.css">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script>
+
+<meta name="generator" content="Hexo 7.0.0"></head>
+
+<body>
+  <a id="top"></a>
+  <div id="main">
+    <div class="main-ctnr">
+      <div class="behind">
+  <a href="/" class="back black-color">
+    <svg class="i-close" viewBox="0 0 32 32" width="22" height="22" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+        <path d="M2 30 L30 2 M30 30 L2 2"></path>
+    </svg>
+  </a>
+  
+    <div class="description">
+      &nbsp;银鞍照白马, 飒沓如流星
+    </div>
+    
+</div>
+
+
+  <article class="standard post">
+    <div class="title">
+      
+  
+    <h1 class="page-title center">
+        JDK21 GA
+    </h1>
+  
+
+
+    </div>
+    <div class="meta center">
+      <time datetime="2023-09-20T06:27:20.000Z" itemprop="datePublished">
+  <svg class="i-calendar" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+    <path d="M2 6 L2 30 30 30 30 6 Z M2 15 L30 15 M7 3 L7 9 M13 3 L13 9 M19 3 L19 9 M25 3 L25 9"></path>
+  </svg>
+  &nbsp;
+  2023-09-20
+</time>
+
+
+
+
+
+    
+    &nbsp;
+    <svg class="i-tag" viewBox="0 0 32 32" width="16" height="16" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+      <circle cx="24" cy="8" r="2"></circle>
+      <path d="M2 18 L18 2 30 2 30 14 14 30 Z"></path>
+    </svg>
+    &nbsp;
+    <a href="/tags/Java/">Java</a>
+
+
+    </div>
+    <hr>
+    
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Features"><span class="toc-text">Features</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#JEP-444-Virtual-Threads"><span class="toc-text">JEP 444 - Virtual Threads</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#JEP-439-Generational-ZGC"><span class="toc-text">JEP 439 - Generational ZGC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#JEP-453-Strucutred-Concurrency-Preview"><span class="toc-text">JEP 453 - Strucutred Concurrency (Preview)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B6%E4%BB%96"><span class="toc-text">其他</span></a></li></ol>
+    
+    <div class="picture-container">
+      
+    </div>
+    <blockquote>
+<p>饱受期待的 JDK21 终于正式发布了，Virtual Threads 脱离了预览阶段，并发编程里程碑式的时代来临了，期待更多框架的升级。</p>
+</blockquote>
+<h2 id="Features"><a href="#Features" class="headerlink" title="Features"></a>Features</h2><h3 id="JEP-444-Virtual-Threads"><a href="#JEP-444-Virtual-Threads" class="headerlink" title="JEP 444 - Virtual Threads"></a>JEP 444 - Virtual Threads</h3><p>虚拟线程类似于 Golang 中的 goroutine，是用户态的线程，由 JVM 管理，采用 M:N 调度。可以轻易的创建大量虚拟线程，而不需要担心资源的消耗。<br>同时根据 JEP 描述，虚拟线程并不会改变 Java 的基本并发模型，同时保持对<code>java.lang.Thread</code> API 的兼容，可以更小的改动来使用虚拟线程。</p>
+<h3 id="JEP-439-Generational-ZGC"><a href="#JEP-439-Generational-ZGC" class="headerlink" title="JEP 439 - Generational ZGC"></a>JEP 439 - Generational ZGC</h3><p>JDK11 就引入了 ZGC，当时还在公司进行了分享，当时提到 ZGC 并支持分代 GC，现在它来了，ZGC 在 JDK21 中支持分代 GC 了。<br>在实际业务场景中，可预期的会大幅提高 GC 效率，并且不会明显降低吞吐量。因为实际场景中，大部分对象都是<em>朝生夕死</em>的。</p>
+<h3 id="JEP-453-Strucutred-Concurrency-Preview"><a href="#JEP-453-Strucutred-Concurrency-Preview" class="headerlink" title="JEP 453 - Strucutred Concurrency (Preview)"></a>JEP 453 - Strucutred Concurrency (Preview)</h3><p>JDK21 还有一个令人期待的特性，Structured Concurrency，结构化并发。<br>阅读了 JEP 描述，感觉这个特性是也是会对 Java 并发编程带来非常大的变化，让并发逻辑更加可控和安全。</p>
+<blockquote>
+<p>Structured concurrency is an approach to concurrent programming that preserves the natural relationship between tasks and subtasks, which leads to more readable, maintainable, and reliable concurrent code. The term “structured concurrency” was coined by Martin Sústrik and popularized by Nathaniel J. Smith. Ideas from other languages, such as Erlang’s hierarchical supervisors, inform the design of error handling in structured concurrency.</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Response <span class="title function_">handle</span><span class="params">()</span> <span class="keyword">throws</span> ExecutionException, InterruptedException &#123;</span><br><span class="line">    <span class="keyword">try</span> (<span class="type">var</span> <span class="variable">scope</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StructuredTaskScope</span>.ShutdownOnFailure()) &#123;</span><br><span class="line">        Supplier&lt;String&gt;  user  = scope.fork(() -&gt; findUser());</span><br><span class="line">        Supplier&lt;Integer&gt; order = scope.fork(() -&gt; fetchOrder());</span><br><span class="line"></span><br><span class="line">        scope.join()            <span class="comment">// Join both subtasks</span></span><br><span class="line">             .throwIfFailed();  <span class="comment">// ... and propagate errors</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// Here, both subtasks have succeeded, so compose their results</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Response</span>(user.get(), order.get());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过实例代码可以看出，Structured Concurrency 通过 StructuredTaskScope 来管理子任务</p>
+<ul>
+<li>短路错误处理 — 如果 <code>findUser()</code> 或 <code>fetchOrder()</code> 子任务失败，则另一个子任务（如果尚未完成）将被取消。</li>
+<li>取消传播 - 如果运行 <code>handle()</code> 的线程在调用 <code>join()</code> 之前或期间被中断，则当线程退出作用域时，两个子任务都会自动取消。</li>
+<li>清晰性 - 上面的代码有一个清晰的结构：设置子任务，等待它们完成或被取消，然后决定是成功（并处理已经完成的子任务的结果）还是失败（和子任务已经完成，所以没有什么需要清理的）。</li>
+<li>可观察性 - 线程转储清楚地显示任务层次结构，其中运行 <code>findUser()</code> 和 <code>fetchOrder()</code> 的线程显示为范围的子级。</li>
+</ul>
+<p>期待这个特性也可以早日转正。</p>
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><p>JDK21 为并发编程提供了更强有力的支持，可以让并发编程变的更加简单，其他团队可以早日脱离 JDK7(真的是老古董了哟)。</p>
+<p>不过好像要学习的东西变得更多了，希望可以在我换工作时面试官的知识库还没有更新，hhh~</p>
+
+
+  </article>
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <div class="busuanzi center">
+    page PV:&nbsp;<span id="busuanzi_value_page_pv"></span>&nbsp;・&nbsp;
+    site PV:&nbsp;<span id="busuanzi_value_site_pv"></span>&nbsp;・&nbsp;
+    site UV:&nbsp;<span id="busuanzi_value_site_uv"></span>
+  </div>
+
+
+    
+
+
+
+
+
+    </div>
+  </div>
+  <footer class="page-footer"><div class="clearfix">
+</div>
+<div class="right-foot">
+    <div class="firstrow">
+        <a href="#top" target="_self">
+        <svg class="i-caret-right" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+            <path d="M10 30 L26 16 10 2 Z"></path>
+        </svg>
+        </a>
+        © Kung's 2023
+    </div>
+    <div class="secondrow">
+        <a target="_blank" rel="noopener" href="https://github.com/gaoryrt/hexo-theme-pln">
+        Theme Pln
+        </a>
+    </div>
+</div>
+<div class="clearfix">
+</div>
+</footer>
+  <script src="//cdn.bootcss.com/jquery/2.2.1/jquery.min.js"></script>
+<script src="/js/search.min.js"></script>
+<script type="text/javascript">
+
+// disqus scripts
+
+
+// dropdown scripts
+function $(s) {
+    return document.querySelector(s)
+  }
+
+  function $$(s) {
+    return document.querySelectorAll(s)
+  }
+  var dropDownElArr = $$('.dropdown')
+  for (var i = 0; i < dropDownElArr.length; i += 1) {
+    dropDownElArr[i].addEventListener('click', function(event) {
+      var content = this.querySelector('.dropdown-content')
+      event.stopPropagation()
+      if (content.className.indexOf('open') < 0) {
+        content.classList.add('open')
+      } else {
+        content.classList.remove('open')
+      }
+    })
+  }
+  document.body.addEventListener('click', function() {
+    var dropDownContentElArr = $$('.dropdown-content')
+    for (var i = 0; i < dropDownContentElArr.length; i += 1) {
+      dropDownContentElArr[i].classList.remove('open')
+    }
+  })
+
+  // smooth scroll
+  $$('a[href^="#"]').forEach(e=>{
+    e.addEventListener("click", function(e) {
+      e.preventDefault();
+      var t = this.getAttribute("href").substr(1);
+      $(`[id='${decodeURIComponent(t)}']`).scrollIntoView({
+        behavior: "smooth"
+      }),
+      t === "top" ? history.replaceState(null, null, " ") : history.pushState(null, null, `#${t}`)
+    })
+  })
+
+// search
+var path = "/search.xml";
+searchFunc(path, 'local-search-input', 'local-search-result');
+
+</script>
+
+</body>
+</html>
